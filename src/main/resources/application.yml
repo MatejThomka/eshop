@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: Eshop
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: true
+  sql:
+    init:
+      mode: always
+
+cart:
+  base:
+    url: ${CART_URL}
+
+coupon:
+  base:
+    url: ${COUPON_URL}
+
+server:
+  port: 8080
+
+

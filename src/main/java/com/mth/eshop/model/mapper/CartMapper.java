@@ -1,12 +1,8 @@
 package com.mth.eshop.model.mapper;
 
 import com.mth.eshop.model.Cart;
-import com.mth.eshop.model.CartItem;
-import com.mth.eshop.model.Coupon;
 import com.mth.eshop.model.record.CartDTO;
 import com.mth.eshop.model.record.CartItemDTO;
-import com.mth.eshop.model.record.CouponDTO;
-
 import java.util.List;
 
 public class CartMapper {

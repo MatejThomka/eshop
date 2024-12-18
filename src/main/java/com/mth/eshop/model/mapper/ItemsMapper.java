@@ -1,11 +1,7 @@
 package com.mth.eshop.model.mapper;
 
 import com.mth.eshop.model.Item;
-import com.mth.eshop.model.record.ItemDTO;
 import com.mth.eshop.model.record.ItemsDTO;
-import com.mth.eshop.model.record.ReviewDTO;
-
-import java.util.List;
 
 public class ItemsMapper {
     public static ItemsDTO toItemsDTO(Item item) {

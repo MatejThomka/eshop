@@ -83,10 +83,13 @@ public class CartController {
   }
 
   @PatchMapping("/add-coupon")
-  public ResponseEntity<?> addCoupon(@RequestParam Integer customerId, @RequestParam Integer cartId, @RequestParam String couponId) {
+  public ResponseEntity<?> addCoupon(
+      @RequestParam Integer customerId,
+      @RequestParam Integer cartId,
+      @RequestParam String couponId) {
     CartDTO cart;
 
-    try{
+    try {
       cart = service.addDiscountCoupon(customerId, cartId, couponId);
     } catch (EshopException e) {
       return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
@@ -95,10 +98,11 @@ public class CartController {
   }
 
   @DeleteMapping("/remove-coupon")
-  public ResponseEntity<?> removeCoupon(@RequestParam Integer customerId, @RequestParam Integer cartId) {
+  public ResponseEntity<?> removeCoupon(
+      @RequestParam Integer customerId, @RequestParam Integer cartId) {
     CartDTO cart;
 
-    try{
+    try {
       cart = service.removeDiscountCoupon(customerId, cartId);
     } catch (EshopException e) {
       return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());

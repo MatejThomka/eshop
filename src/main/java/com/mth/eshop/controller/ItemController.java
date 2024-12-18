@@ -13,57 +13,57 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/item")
 public class ItemController {
 
-    private final ItemService itemService;
+  private final ItemService itemService;
 
-    public ItemController (ItemService itemService) {
-        this.itemService = itemService;
+  public ItemController(ItemService itemService) {
+    this.itemService = itemService;
+  }
+
+  @GetMapping
+  public ResponseEntity<?> showItem(@RequestParam String id) {
+    ItemDTO item;
+
+    try {
+      item = itemService.getItem(id);
+    } catch (EshopException e) {
+      return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
     }
+    return new ResponseEntity<>(item, HttpStatus.OK);
+  }
 
-    @GetMapping
-    public ResponseEntity<?> showItem(@RequestParam String id) {
-        ItemDTO item;
+  @PutMapping("/add-or-update")
+  public ResponseEntity<?> addOrUpdateItem(@RequestBody Item item) {
+    String message;
 
-        try{
-            item = itemService.getItem(id);
-        } catch (EshopException e) {
-            return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
-        }
-        return new ResponseEntity<>(item, HttpStatus.OK);
+    try {
+      message = itemService.createOrUpdateItem(item);
+    } catch (EshopException e) {
+      return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
     }
+    return new ResponseEntity<>(message, HttpStatus.OK);
+  }
 
-    @PutMapping("/add-or-update")
-    public ResponseEntity<?> addOrUpdateItem(@RequestBody Item item) {
-        String message;
+  @DeleteMapping("/delete")
+  public ResponseEntity<?> deleteItem(@RequestParam String id) {
+    String message;
 
-        try{
-            message = itemService.createOrUpdateItem(item);
-        } catch (EshopException e) {
-            return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
-        }
-        return new ResponseEntity<>(message, HttpStatus.OK);
+    try {
+      message = itemService.removeItem(id);
+    } catch (EshopException e) {
+      return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
     }
+    return new ResponseEntity<>(message, HttpStatus.OK);
+  }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteItem(@RequestParam String id) {
-        String message;
+  @PutMapping("/review/add-or-update")
+  public ResponseEntity<?> addReview(@RequestParam String id, @RequestBody Review review) {
+    ItemDTO item;
 
-        try{
-            message = itemService.removeItem(id);
-        } catch (EshopException e) {
-            return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
-        }
-        return new ResponseEntity<>(message, HttpStatus.OK);
+    try {
+      item = itemService.addOrUpdateReview(id, review);
+    } catch (EshopException e) {
+      return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
     }
-
-    @PutMapping("/review/add-or-update")
-    public ResponseEntity<?> addReview(@RequestParam String id, @RequestBody Review review) {
-        ItemDTO item;
-
-        try{
-            item = itemService.addOrUpdateReview(id, review);
-        } catch (EshopException e) {
-            return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
-        }
-        return new ResponseEntity<>(item, HttpStatus.OK);
-    }
+    return new ResponseEntity<>(item, HttpStatus.OK);
+  }
 }

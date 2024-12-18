@@ -11,7 +11,7 @@ import java.util.List;
 
 public class CartMapper {
   public static CartDTO toCartDTO(Cart cart) {
-    List<CartItemDTO> itemDTOS =
+    List<CartItemDTO> items =
         cart.getCartItem().stream().map(CartItemMapper::toCartItemDTO).toList();
 
     Integer discountInPercentage = cart.getCoupon() != null ? CouponMapper.toCouponDTO(cart.getCoupon()).discountInPercentage() : null;
@@ -21,7 +21,7 @@ public class CartMapper {
     return new CartDTO(
         cart.getId(),
         cart.getCustomer().getId(),
-        itemDTOS,
+        items,
         cart.getQuantity(),
         roundedPrice,
         discountInPercentage);

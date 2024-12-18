@@ -19,5 +19,6 @@ public class Item {
   Double price;
   String description;
   Integer stockQuantity;
+  Double stars;
   @OneToMany List<Review> review;
 }

@@ -8,4 +8,5 @@ public record ItemDTO(
     Double price,
     String description,
     Integer stockQuantity,
-    List<ReviewDTO> reviewDTOS) {}
+    Double stars,
+    List<ReviewDTO> reviews) {}

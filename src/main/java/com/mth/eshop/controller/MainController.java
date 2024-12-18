@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mth.eshop.exception.EshopException;
 import com.mth.eshop.model.Item;
-import com.mth.eshop.model.record.CartDTO;
-import com.mth.eshop.model.record.CouponDTO;
-import com.mth.eshop.model.record.ItemDTO;
-import com.mth.eshop.model.record.MainResponse;
+import com.mth.eshop.model.record.*;
 import com.mth.eshop.service.MainService;
 
 import java.util.HashMap;
@@ -44,7 +41,7 @@ public class MainController {
       @RequestParam(required = false) Integer customerId,
       @RequestParam(required = false) Integer cartId) {
 
-    List<ItemDTO> itemList;
+    List<ItemsDTO> itemList;
     List<CouponDTO> couponList;
     CartDTO cartDTO;
 

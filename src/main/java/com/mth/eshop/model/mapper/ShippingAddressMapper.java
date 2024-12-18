@@ -6,7 +6,7 @@ import com.mth.eshop.model.record.ShippingAddressDTO;
 
 public class ShippingAddressMapper {
   public static ShippingAddressDTO toShippingAddressDTO(ShippingAddress shippingAddress) {
-    CustomerDTO customerDTO =
+    CustomerDTO customer =
         shippingAddress.getCustomer() != null
             ? CustomerMapper.toCustomerDTO(shippingAddress.getCustomer())
             : null;
@@ -18,6 +18,6 @@ public class ShippingAddressMapper {
         shippingAddress.getCity(),
         shippingAddress.getZip(),
         shippingAddress.getCountry(),
-        customerDTO);
+        customer);
   }
 }

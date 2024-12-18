@@ -9,7 +9,7 @@ import java.util.List;
 public record CartDTO(
     Integer id,
     Integer customerId,
-    List<CartItemDTO> item,
+    List<CartItemDTO> items,
     Integer quantity,
     Double finalPrice,
     Integer discountInPercentage) {}

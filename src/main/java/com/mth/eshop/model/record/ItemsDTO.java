@@ -1,12 +1,10 @@
 package com.mth.eshop.model.record;
 
-import java.util.List;
-
-public record ItemDTO(
+public record ItemsDTO(
     String id,
     String name,
     Double price,
     String description,
     Integer stockQuantity,
     Double stars,
-    List<ReviewDTO> reviews) {}
+    Integer numberOfReviews) {}

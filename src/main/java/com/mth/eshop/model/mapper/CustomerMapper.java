@@ -9,13 +9,13 @@ import java.util.List;
 
 public class CustomerMapper {
   public static CustomerDTO toCustomerDTO(Customer customer) {
-    List<AddressDTO> addressDTOS =
+    List<AddressDTO> addresses =
         customer.getAddress().stream().map(AddressMapper::toAddressDTO).toList();
-    List<ShippingAddressDTO> shippingAddressDTOS =
+    List<ShippingAddressDTO> shippingAddresses =
         customer.getShippingAddress().stream()
             .map(ShippingAddressMapper::toShippingAddressDTO)
             .toList();
-    CartDTO cartDTO = customer.getCart() != null ? CartMapper.toCartDTO(customer.getCart()) : null;
+    CartDTO cart = customer.getCart() != null ? CartMapper.toCartDTO(customer.getCart()) : null;
 
     return new CustomerDTO(
         customer.getId(),
@@ -23,8 +23,8 @@ public class CustomerMapper {
         customer.getLastname(),
         customer.getEmail(),
         customer.isTemporary(),
-        addressDTOS,
-        shippingAddressDTOS,
-        cartDTO);
+        addresses,
+        shippingAddresses,
+        cart);
   }
 }

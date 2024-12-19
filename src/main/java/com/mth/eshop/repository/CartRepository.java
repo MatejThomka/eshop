@@ -10,5 +10,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CartRepository extends JpaRepository<Cart, Integer> {
   Optional<Cart> findCartByIdAndCustomer_Id(Integer cartId, Integer customerId);
+
   List<Cart> findByCoupon(Coupon coupon);
 }

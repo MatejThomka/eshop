@@ -8,6 +8,6 @@ public record CustomerDTO(
     String lastname,
     String email,
     boolean isTemporary,
-    List<AddressDTO> addressDTOS,
-    List<ShippingAddressDTO> shippingAddressDTOS,
-    CartDTO cartDTO) {}
+    List<AddressDTO> addresses,
+    List<ShippingAddressDTO> shippingAddresses,
+    CartDTO cart) {}

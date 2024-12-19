@@ -6,7 +6,7 @@ import com.mth.eshop.model.record.CustomerDTO;
 
 public class AddressMapper {
   public static AddressDTO toAddressDTO(Address address) {
-    CustomerDTO customerDTO =
+    CustomerDTO customer =
         address.getCustomer() != null ? CustomerMapper.toCustomerDTO(address.getCustomer()) : null;
 
     return new AddressDTO(
@@ -16,6 +16,6 @@ public class AddressMapper {
         address.getCity(),
         address.getZip(),
         address.getCountry(),
-        customerDTO);
+        customer);
   }
 }

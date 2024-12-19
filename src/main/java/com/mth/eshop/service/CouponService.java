@@ -16,49 +16,49 @@ import org.springframework.stereotype.Service;
 @Service
 public class CouponService {
 
-    private final CouponRepository couponRepository;
-    private final CartRepository cartRepository;
+  private final CouponRepository couponRepository;
+  private final CartRepository cartRepository;
 
-    public CouponService(CouponRepository couponRepository, CartRepository cartRepository) {
-        this.couponRepository = couponRepository;
-        this.cartRepository = cartRepository;
+  public CouponService(CouponRepository couponRepository, CartRepository cartRepository) {
+    this.couponRepository = couponRepository;
+    this.cartRepository = cartRepository;
+  }
+
+  public List<CouponDTO> showAllCoupons() {
+    return couponRepository.findAll().stream().map(CouponMapper::toCouponDTO).toList();
+  }
+
+  public String createCoupon(Coupon coupon) throws EshopException {
+    Optional<Coupon> couponOptional = couponRepository.findById(coupon.getId());
+
+    if (couponOptional.isPresent()) {
+      throw new CouponException("Coupon is already exists!", HttpStatus.CONFLICT);
     }
 
-    public List<CouponDTO> showAllCoupons() {
-        return couponRepository.findAll().stream().map(CouponMapper::toCouponDTO).toList();
+    couponRepository.save(coupon);
+
+    return "Coupon add successfully with ID: " + coupon.getId();
+  }
+
+  public String removeCoupon(String couponId) throws EshopException {
+    Optional<Coupon> couponOptional = couponRepository.findById(couponId);
+
+    if (couponOptional.isEmpty()) {
+      throw new CouponException("Coupon doesn't exists!", HttpStatus.NOT_FOUND);
     }
 
-    public String createCoupon(Coupon coupon) throws EshopException {
-        Optional<Coupon> couponOptional = couponRepository.findById(coupon.getId());
+    Coupon coupon = couponOptional.get();
 
-        if (couponOptional.isPresent()) {
-            throw new CouponException("Coupon is already exists!", HttpStatus.CONFLICT);
-        }
+    List<Cart> cartWithCoupon = cartRepository.findByCoupon(coupon);
 
-        couponRepository.save(coupon);
-
-        return "Coupon add successfully with ID: " + coupon.getId();
+    for (Cart cart : cartWithCoupon) {
+      cart.setCoupon(null);
+      cart.setFinalPrice(cart.getOriginalPrice());
+      cartRepository.save(cart);
     }
 
-    public String removeCoupon(String couponId) throws EshopException {
-        Optional<Coupon> couponOptional = couponRepository.findById(couponId);
+    couponRepository.delete(coupon);
 
-        if (couponOptional.isEmpty()) {
-            throw new CouponException("Coupon doesn't exists!", HttpStatus.NOT_FOUND);
-        }
-
-        Coupon coupon = couponOptional.get();
-
-        List<Cart> cartWithCoupon = cartRepository.findByCoupon(coupon);
-
-        for (Cart cart : cartWithCoupon) {
-            cart.setCoupon(null);
-            cart.setFinalPrice(cart.getOriginalPrice());
-            cartRepository.save(cart);
-        }
-
-        couponRepository.delete(coupon);
-
-        return "Coupon deleted successfully.";
-    }
+    return "Coupon deleted successfully.";
+  }
 }

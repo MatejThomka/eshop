@@ -2,6 +2,7 @@ package com.mth.eshop.service;
 
 import com.mth.eshop.exception.EshopException;
 import com.mth.eshop.exception.ItemException;
+import com.mth.eshop.exception.ReviewException;
 import com.mth.eshop.model.Item;
 import com.mth.eshop.model.Review;
 import com.mth.eshop.model.mapper.ItemMapper;
@@ -76,6 +77,10 @@ public class ItemService {
 
   public ItemDTO addOrUpdateReview(String id, Review review) throws EshopException {
       Optional<Item> itemOptional = itemRepository.findById(id);
+
+      if (review.getStars() > 5.0 || review.getStars() < 0.0) {
+          throw new ReviewException("You set wrong stars score!", HttpStatus.NOT_ACCEPTABLE);
+      }
 
       if (itemOptional.isEmpty()) {
           throw new ItemException("Item doesn't exists with ID: " + id, HttpStatus.NOT_FOUND);

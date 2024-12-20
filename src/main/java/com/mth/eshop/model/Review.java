@@ -1,6 +1,7 @@
 package com.mth.eshop.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class Review {
   Integer id;
 
   String fromCustomer;
-  Double stars;
+  @NotNull(message = "Review Stars cannot be null") Double stars;
   String description;
   @ManyToOne Item item;
 }

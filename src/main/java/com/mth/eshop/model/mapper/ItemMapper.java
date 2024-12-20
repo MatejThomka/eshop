@@ -9,7 +9,7 @@ public class ItemMapper {
   public static ItemDTO toItemDTO(Item item) {
     List<ReviewDTO> reviews = item.getReview().stream().map(ReviewMapper::toReviewDTO).toList();
 
-    Double roundedStars = Math.round(item.getStars() * 10.0) / 10.0;
+    Double roundedStars = item.getStars() != null ? Math.round(item.getStars() * 10.0) / 10.0 : 0.0;
 
     return new ItemDTO(
         item.getId(),

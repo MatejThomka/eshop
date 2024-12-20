@@ -15,8 +15,11 @@ import com.mth.eshop.repository.ItemRepository;
 import com.mth.eshop.repository.ReviewRepository;
 import java.util.List;
 import java.util.Optional;
+
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ItemService {
@@ -49,7 +52,7 @@ public class ItemService {
     return ItemMapper.toItemDTO(item);
   }
 
-  public String createOrUpdateItem(Item item) throws EshopException {
+  public ItemDTO createOrUpdateItem(Item item) throws EshopException {
     Optional<Item> itemOptional = itemRepository.findById(item.getId());
 
     if (itemOptional.isPresent()) {
@@ -59,7 +62,7 @@ public class ItemService {
       updatedItem.setDescription(item.getDescription());
       updatedItem.setStockQuantity(item.getStockQuantity());
       itemRepository.save(updatedItem);
-      return "Item updated successfully.";
+      return ItemMapper.toItemDTO(updatedItem);
     } else {
       Item newItem = new Item();
       newItem.setId(item.getId());
@@ -69,12 +72,12 @@ public class ItemService {
       newItem.setStockQuantity(item.getStockQuantity());
       newItem.setReview(List.of());
       itemRepository.save(newItem);
+      return ItemMapper.toItemDTO(newItem);
     }
-
-    return "Item add successfully.";
   }
 
-  public String removeItem(String id) throws EshopException {
+  @Transactional
+  public ItemDTO removeItem(String id) throws EshopException {
     Optional<Item> itemOptional = itemRepository.findById(id);
     Optional<CartItem> cartItemOptional = cartItemRepository.findById(id);
 
@@ -82,25 +85,24 @@ public class ItemService {
       throw new ItemException("Item doesn't exists with ID: " + id, HttpStatus.NOT_FOUND);
     }
 
-    if (cartItemOptional.isEmpty()) {
-      throw new ItemException("Cart Item doesn't exists with ID: " + id, HttpStatus.NOT_FOUND);
+    if (cartItemOptional.isPresent()) {
+      CartItem cartItem = cartItemOptional.get();
+
+      List<Cart> cartsWithItem = cartRepository.findAllByCartItemContaining(cartItem);
+
+      for (Cart cart : cartsWithItem) {
+        cart.getCartItem().remove(cartItem);
+        cartRepository.save(cart);
+      }
+
+      cartItemRepository.delete(cartItem);
     }
 
     Item item = itemOptional.get();
-    CartItem cartItem = cartItemOptional.get();
-
-    List<Cart> cartsWithItem = cartRepository.findAllByCartItemContaining(cartItem);
-
-    for (Cart cart : cartsWithItem) {
-      cart.getCartItem().remove(cartItem);
-      cartRepository.save(cart);
-    }
-
-    cartItemRepository.delete(cartItem);
 
     itemRepository.delete(item);
 
-    return "Item delete successfully.";
+    return ItemMapper.toItemDTO(item);
   }
 
   public ItemDTO addOrUpdateReview(String id, Review review) throws EshopException {

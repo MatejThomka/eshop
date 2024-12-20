@@ -1,7 +1,7 @@
 package com.mth.eshop.model.mapper;
 
+import com.mth.eshop.model.DTO.ReviewDTO;
 import com.mth.eshop.model.Review;
-import com.mth.eshop.model.record.ReviewDTO;
 
 public class ReviewMapper {
   public static ReviewDTO toReviewDTO(Review review) {

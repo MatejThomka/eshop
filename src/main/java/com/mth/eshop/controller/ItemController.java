@@ -1,9 +1,9 @@
 package com.mth.eshop.controller;
 
 import com.mth.eshop.exception.EshopException;
+import com.mth.eshop.model.DTO.ItemDTO;
 import com.mth.eshop.model.Item;
 import com.mth.eshop.model.Review;
-import com.mth.eshop.model.record.ItemDTO;
 import com.mth.eshop.service.ItemService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

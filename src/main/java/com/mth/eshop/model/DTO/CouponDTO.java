@@ -1,3 +1,3 @@
-package com.mth.eshop.model.record;
+package com.mth.eshop.model.DTO;
 
 public record CouponDTO(String id, Integer discountInPercentage) {}

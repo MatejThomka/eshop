@@ -2,9 +2,9 @@ package com.mth.eshop.service;
 
 import com.mth.eshop.exception.EshopException;
 import com.mth.eshop.exception.ItemException;
+import com.mth.eshop.model.DTO.ItemsDTO;
 import com.mth.eshop.model.Item;
 import com.mth.eshop.model.mapper.ItemsMapper;
-import com.mth.eshop.model.record.ItemsDTO;
 import com.mth.eshop.repository.ItemRepository;
 import java.util.List;
 import java.util.Optional;

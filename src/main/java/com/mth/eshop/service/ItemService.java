@@ -3,10 +3,14 @@ package com.mth.eshop.service;
 import com.mth.eshop.exception.EshopException;
 import com.mth.eshop.exception.ItemException;
 import com.mth.eshop.exception.ReviewException;
+import com.mth.eshop.model.Cart;
+import com.mth.eshop.model.CartItem;
+import com.mth.eshop.model.DTO.ItemDTO;
 import com.mth.eshop.model.Item;
 import com.mth.eshop.model.Review;
 import com.mth.eshop.model.mapper.ItemMapper;
-import com.mth.eshop.model.record.ItemDTO;
+import com.mth.eshop.repository.CartItemRepository;
+import com.mth.eshop.repository.CartRepository;
 import com.mth.eshop.repository.ItemRepository;
 import com.mth.eshop.repository.ReviewRepository;
 import java.util.List;
@@ -19,10 +23,18 @@ public class ItemService {
 
   private final ItemRepository itemRepository;
   private final ReviewRepository reviewRepository;
+  private final CartRepository cartRepository;
+  private final CartItemRepository cartItemRepository;
 
-  public ItemService(ItemRepository itemRepository, ReviewRepository reviewRepository) {
+  public ItemService(
+      ItemRepository itemRepository,
+      ReviewRepository reviewRepository,
+      CartRepository cartRepository,
+      CartItemRepository cartItemRepository) {
     this.itemRepository = itemRepository;
     this.reviewRepository = reviewRepository;
+    this.cartRepository = cartRepository;
+    this.cartItemRepository = cartItemRepository;
   }
 
   public ItemDTO getItem(String id) throws EshopException {
@@ -63,53 +75,71 @@ public class ItemService {
   }
 
   public String removeItem(String id) throws EshopException {
-      Optional<Item> itemOptional = itemRepository.findById(id);
+    Optional<Item> itemOptional = itemRepository.findById(id);
+    Optional<CartItem> cartItemOptional = cartItemRepository.findById(id);
 
-      if (itemOptional.isEmpty()) {
-          throw new ItemException("Item doesn't exists with ID: " + id, HttpStatus.NOT_FOUND);
-      }
+    if (itemOptional.isEmpty()) {
+      throw new ItemException("Item doesn't exists with ID: " + id, HttpStatus.NOT_FOUND);
+    }
 
-      Item item = itemOptional.get();
-      itemRepository.delete(item);
+    if (cartItemOptional.isEmpty()) {
+      throw new ItemException("Cart Item doesn't exists with ID: " + id, HttpStatus.NOT_FOUND);
+    }
 
-      return "Item delete successfully.";
+    Item item = itemOptional.get();
+    CartItem cartItem = cartItemOptional.get();
+
+    List<Cart> cartsWithItem = cartRepository.findAllByCartItemContaining(cartItem);
+
+    for (Cart cart : cartsWithItem) {
+      cart.getCartItem().remove(cartItem);
+      cartRepository.save(cart);
+    }
+
+    cartItemRepository.delete(cartItem);
+
+    itemRepository.delete(item);
+
+    return "Item delete successfully.";
   }
 
   public ItemDTO addOrUpdateReview(String id, Review review) throws EshopException {
-      Optional<Item> itemOptional = itemRepository.findById(id);
+    Optional<Item> itemOptional = itemRepository.findById(id);
 
-      if (review.getStars() > 5.0 || review.getStars() < 0.0) {
-          throw new ReviewException("You set wrong stars score!", HttpStatus.NOT_ACCEPTABLE);
-      }
+    if (review.getStars() > 5.0 || review.getStars() < 0.0) {
+      throw new ReviewException("You set wrong stars score!", HttpStatus.NOT_ACCEPTABLE);
+    }
 
-      if (itemOptional.isEmpty()) {
-          throw new ItemException("Item doesn't exists with ID: " + id, HttpStatus.NOT_FOUND);
-      }
+    if (itemOptional.isEmpty()) {
+      throw new ItemException("Item doesn't exists with ID: " + id, HttpStatus.NOT_FOUND);
+    }
 
-      Item item = itemOptional.get();
+    Item item = itemOptional.get();
 
-      Optional<Review> reviewOptional = reviewRepository.findByIdAndItem_Id(review.getId(), item.getId());
+    Optional<Review> reviewOptional =
+        reviewRepository.findByIdAndItem_Id(review.getId(), item.getId());
 
-      if (reviewOptional.isPresent()) {
-          Review updatedReview = reviewOptional.get();
-          updatedReview.setStars(review.getStars());
-          updatedReview.setDescription(review.getDescription());
-          reviewRepository.save(updatedReview);
-      } else {
-          Review newReview = new Review();
-          newReview.setFromCustomer(review.getFromCustomer());
-          newReview.setStars(review.getStars());
-          newReview.setDescription(review.getDescription());
-          newReview.setItem(item);
-          reviewRepository.save(newReview);
+    if (reviewOptional.isPresent()) {
+      Review updatedReview = reviewOptional.get();
+      updatedReview.setStars(review.getStars());
+      updatedReview.setDescription(review.getDescription());
+      reviewRepository.save(updatedReview);
+    } else {
+      Review newReview = new Review();
+      newReview.setFromCustomer(review.getFromCustomer());
+      newReview.setStars(review.getStars());
+      newReview.setDescription(review.getDescription());
+      newReview.setItem(item);
+      reviewRepository.save(newReview);
 
-          item.getReview().add(newReview);
-          itemRepository.save(item);
-      }
-
-      item.setStars(item.getReview().stream().mapToDouble(Review::getStars).sum() / item.getReview().size());
+      item.getReview().add(newReview);
       itemRepository.save(item);
+    }
 
-      return ItemMapper.toItemDTO(item);
+    item.setStars(
+        item.getReview().stream().mapToDouble(Review::getStars).sum() / item.getReview().size());
+    itemRepository.save(item);
+
+    return ItemMapper.toItemDTO(item);
   }
 }

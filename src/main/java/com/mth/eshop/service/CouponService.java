@@ -4,8 +4,8 @@ import com.mth.eshop.exception.CouponException;
 import com.mth.eshop.exception.EshopException;
 import com.mth.eshop.model.Cart;
 import com.mth.eshop.model.Coupon;
+import com.mth.eshop.model.DTO.CouponDTO;
 import com.mth.eshop.model.mapper.CouponMapper;
-import com.mth.eshop.model.record.CouponDTO;
 import com.mth.eshop.repository.CartRepository;
 import com.mth.eshop.repository.CouponRepository;
 import java.util.List;
@@ -28,7 +28,7 @@ public class CouponService {
     return couponRepository.findAll().stream().map(CouponMapper::toCouponDTO).toList();
   }
 
-  public String createCoupon(Coupon coupon) throws EshopException {
+  public CouponDTO createCoupon(Coupon coupon) throws EshopException {
     Optional<Coupon> couponOptional = couponRepository.findById(coupon.getId());
 
     if (couponOptional.isPresent()) {
@@ -37,10 +37,10 @@ public class CouponService {
 
     couponRepository.save(coupon);
 
-    return "Coupon add successfully with ID: " + coupon.getId();
+    return CouponMapper.toCouponDTO(coupon);
   }
 
-  public String removeCoupon(String couponId) throws EshopException {
+  public CouponDTO removeCoupon(String couponId) throws EshopException {
     Optional<Coupon> couponOptional = couponRepository.findById(couponId);
 
     if (couponOptional.isEmpty()) {
@@ -59,6 +59,18 @@ public class CouponService {
 
     couponRepository.delete(coupon);
 
-    return "Coupon deleted successfully.";
+    return CouponMapper.toCouponDTO(coupon);
+  }
+
+  public CouponDTO getCoupon(String id) {
+    Optional<Coupon> couponOptional = couponRepository.findById(id);
+
+    if (couponOptional.isEmpty()) {
+      throw new CouponException("Coupon doesn't exists!", HttpStatus.NOT_FOUND);
+    }
+
+    Coupon coupon = couponOptional.get();
+
+    return CouponMapper.toCouponDTO(coupon);
   }
 }

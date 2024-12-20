@@ -5,8 +5,8 @@ import com.mth.eshop.exception.CouponException;
 import com.mth.eshop.exception.EshopException;
 import com.mth.eshop.exception.ItemException;
 import com.mth.eshop.model.*;
+import com.mth.eshop.model.DTO.CartDTO;
 import com.mth.eshop.model.mapper.CartMapper;
-import com.mth.eshop.model.record.CartDTO;
 import com.mth.eshop.repository.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +64,8 @@ public class CartService {
     return CartMapper.toCartDTO(cartOptional.get());
   }
 
-  public String addToCart(Integer customerId, Integer cartId, String itemId) throws EshopException {
+  public CartDTO addToCart(Integer customerId, Integer cartId, String itemId)
+      throws EshopException {
 
     Optional<Cart> cartOptional = cartRepository.findCartByIdAndCustomer_Id(cartId, customerId);
 
@@ -112,10 +113,10 @@ public class CartService {
 
     cartRepository.save(cart);
 
-    return "Item add into cart successfully.";
+    return CartMapper.toCartDTO(cart);
   }
 
-  public String removeItemFromCart(Integer customerId, Integer cartId, String itemId)
+  public CartDTO removeItemFromCart(Integer customerId, Integer cartId, String itemId)
       throws EshopException {
     Optional<Cart> cartOptional = cartRepository.findCartByIdAndCustomer_Id(cartId, customerId);
     Optional<Item> itemOptional = itemRepository.findById(itemId);
@@ -162,7 +163,7 @@ public class CartService {
 
     cartRepository.save(cart);
 
-    return "Item removed successfully.";
+    return CartMapper.toCartDTO(cart);
   }
 
   public CartDTO recalculateCart(Integer customerId, Integer cartId) throws EshopException {

@@ -1,12 +1,14 @@
 package com.mth.eshop.controller;
 
-import com.mth.eshop.exception.EshopException;
-import com.mth.eshop.model.record.CartDTO;
+import com.mth.eshop.model.DTO.CartCouponRequest;
+import com.mth.eshop.model.DTO.CartDTO;
+import com.mth.eshop.model.DTO.CartItemRequest;
 import com.mth.eshop.service.CartService;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
+import java.net.URI;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequestMapping("/cart")
@@ -18,95 +20,58 @@ public class CartController {
     this.service = service;
   }
 
-  @GetMapping()
-  public ResponseEntity<?> showCart(
-      @RequestParam Integer customerId, @RequestParam Integer cartId) {
-    CartDTO cart;
-
-    try {
-      cart = service.showCart(cartId, customerId);
-    } catch (EshopException e) {
-      return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
-    }
-    return new ResponseEntity<>(cart, HttpStatus.OK);
+  @GetMapping("/{customerId}/{cartId}")
+  public ResponseEntity<CartDTO> showCart(
+      @PathVariable Integer customerId, @PathVariable Integer cartId) {
+    CartDTO cart = service.showCart(cartId, customerId);
+    return ResponseEntity.ok(cart);
   }
 
   @GetMapping("/create")
-  public ResponseEntity<?> createCart() {
-    CartDTO cart;
+  public ResponseEntity<CartDTO> createCart() {
+    CartDTO cart = service.createCart();
 
-    try {
-      cart = service.createCart();
-    } catch (EshopException e) {
-      return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
-    }
-    return new ResponseEntity<>(cart, HttpStatus.OK);
+    URI location =
+        ServletUriComponentsBuilder.fromCurrentContextPath()
+            .path("/cart/{customerId}/{cartId}")
+            .buildAndExpand(cart.customerId(), cart.id())
+            .toUri();
+
+    return ResponseEntity.created(location).body(cart);
   }
 
-  @PutMapping("/add-item")
-  public ResponseEntity<?> addItemToCart(
-      @RequestParam Integer customerId, @RequestParam Integer cartId, @RequestParam String itemId) {
-    String message;
-
-    try {
-      message = service.addToCart(customerId, cartId, itemId);
-    } catch (EshopException e) {
-      return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
-    }
-    return new ResponseEntity<>(message, HttpStatus.OK);
+  @PutMapping("/{id}/add-item")
+  public ResponseEntity<CartDTO> addItemToCart(
+      @PathVariable Integer id, @Valid @RequestBody CartItemRequest request) {
+    CartDTO updatedCart = service.addToCart(request.customerId(), id, request.itemId());
+    return ResponseEntity.ok(updatedCart);
   }
 
-  @DeleteMapping("/remove-item")
-  public ResponseEntity<?> removeItem(
-      @RequestParam Integer customerId, @RequestParam Integer cartId, @RequestParam String itemId) {
-    String message;
-
-    try {
-      message = service.removeItemFromCart(customerId, cartId, itemId);
-    } catch (EshopException e) {
-      return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
-    }
-    return new ResponseEntity<>(message, HttpStatus.OK);
+  @DeleteMapping("/{id}/remove-item")
+  public ResponseEntity<CartDTO> removeItem(
+      @PathVariable Integer id, @Valid @RequestBody CartItemRequest request) {
+    CartDTO cart = service.removeItemFromCart(request.customerId(), id, request.itemId());
+    return ResponseEntity.ok(cart);
   }
 
-  @PatchMapping("/recalculate")
-  public ResponseEntity<?> recalculate(
-      @RequestParam Integer customerId, @RequestParam Integer cartId) {
-    CartDTO cart;
-
-    try {
-      cart = service.recalculateCart(customerId, cartId);
-    } catch (EshopException e) {
-      return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
-    }
-    return new ResponseEntity<>(cart, HttpStatus.OK);
+  @PatchMapping("/{customerId}/{cartId}/recalculate")
+  public ResponseEntity<CartDTO> recalculate(
+      @PathVariable Integer customerId, @PathVariable Integer cartId) {
+    CartDTO cart = service.recalculateCart(customerId, cartId);
+    return ResponseEntity.ok(cart);
   }
 
-  @PatchMapping("/add-coupon")
-  public ResponseEntity<?> addCoupon(
-      @RequestParam Integer customerId,
-      @RequestParam Integer cartId,
-      @RequestParam String couponId) {
-    CartDTO cart;
-
-    try {
-      cart = service.addDiscountCoupon(customerId, cartId, couponId);
-    } catch (EshopException e) {
-      return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
-    }
-    return new ResponseEntity<>(cart, HttpStatus.OK);
+  @PatchMapping("/{id}/add-coupon")
+  public ResponseEntity<CartDTO> addCoupon(
+      @PathVariable Integer id, @Valid @RequestBody CartCouponRequest request) {
+    CartDTO cart = service.addDiscountCoupon(request.customerId(), id, request.couponId());
+    return ResponseEntity.ok(cart);
   }
 
-  @DeleteMapping("/remove-coupon")
-  public ResponseEntity<?> removeCoupon(
-      @RequestParam Integer customerId, @RequestParam Integer cartId) {
-    CartDTO cart;
-
-    try {
-      cart = service.removeDiscountCoupon(customerId, cartId);
-    } catch (EshopException e) {
-      return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
-    }
-    return new ResponseEntity<>(cart, HttpStatus.OK);
+  @DeleteMapping("/{id}/remove-coupon")
+  public ResponseEntity<CartDTO> removeCoupon(
+      @PathVariable Integer id, @Valid @RequestBody CartCouponRequest request) {
+    CartDTO cart = service.removeDiscountCoupon(request.customerId(), id);
+    return ResponseEntity.ok(cart);
   }
 }

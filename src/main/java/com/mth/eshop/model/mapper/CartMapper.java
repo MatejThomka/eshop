@@ -1,8 +1,8 @@
 package com.mth.eshop.model.mapper;
 
 import com.mth.eshop.model.Cart;
-import com.mth.eshop.model.record.CartDTO;
-import com.mth.eshop.model.record.CartItemDTO;
+import com.mth.eshop.model.DTO.CartDTO;
+import com.mth.eshop.model.DTO.CartItemDTO;
 import java.util.List;
 
 public class CartMapper {
@@ -10,7 +10,10 @@ public class CartMapper {
     List<CartItemDTO> items =
         cart.getCartItem().stream().map(CartItemMapper::toCartItemDTO).toList();
 
-    Integer discountInPercentage = cart.getCoupon() != null ? CouponMapper.toCouponDTO(cart.getCoupon()).discountInPercentage() : null;
+    Integer discountInPercentage =
+        cart.getCoupon() != null
+            ? CouponMapper.toCouponDTO(cart.getCoupon()).discountInPercentage()
+            : null;
 
     double roundedPrice = Math.round(cart.getFinalPrice() * 100.0) / 100.0;
 

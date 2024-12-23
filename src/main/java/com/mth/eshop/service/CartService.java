@@ -1,5 +1,7 @@
 package com.mth.eshop.service;
 
+import static com.mth.eshop.util.CartUtils.*;
+
 import com.mth.eshop.exception.CartException;
 import com.mth.eshop.exception.CouponException;
 import com.mth.eshop.exception.EshopException;
@@ -8,7 +10,6 @@ import com.mth.eshop.model.*;
 import com.mth.eshop.model.DTO.CartDTO;
 import com.mth.eshop.model.mapper.CartMapper;
 import com.mth.eshop.repository.*;
-import java.util.ArrayList;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -79,7 +80,7 @@ public class CartService {
     } else {
       CartItem existingCartItem = cartItemOptional.get();
       existingCartItem.setQuantity(existingCartItem.getQuantity() + 1);
-      existingCartItem.setPrice(item.getPrice() * existingCartItem.getQuantity());
+      existingCartItem.setPrice(calculateItemPrice(item, existingCartItem.getQuantity()));
       cartItemRepository.save(existingCartItem);
     }
 
@@ -98,7 +99,7 @@ public class CartService {
 
     if (cartItem.getQuantity() > 1) {
       cartItem.setQuantity(cartItem.getQuantity() - 1);
-      cartItem.setPrice(item.getPrice() * cartItem.getQuantity());
+      cartItem.setPrice(calculateItemPrice(item, cartItem.getQuantity()));
       cartItemRepository.save(cartItem);
     } else {
       cart.getCartItem().remove(cartItem);
@@ -212,37 +213,5 @@ public class CartService {
       applyDiscountAndUpdateCart(cart);
     }
     cartRepository.save(cart);
-  }
-
-  private void updateCartTotals(Cart cart) {
-    int totalQuantity = cart.getCartItem().stream().mapToInt(CartItem::getQuantity).sum();
-    double totalPrice = cart.getCartItem().stream().mapToDouble(CartItem::getPrice).sum();
-
-    cart.setQuantity(totalQuantity);
-    cart.setOriginalPrice(totalPrice);
-    cart.setFinalPrice(totalPrice);
-  }
-
-  private double calculateDiscount(Cart cart) {
-    if (cart.getCoupon() == null) {
-      return 0.0;
-    }
-    return cart.getOriginalPrice() * (cart.getCoupon().getDiscountInPercentage() / 100.0);
-  }
-
-  private void applyDiscountAndUpdateCart(Cart cart) {
-    double discount = calculateDiscount(cart);
-    double totalPriceWithDiscount = cart.getOriginalPrice() - discount;
-    cart.setFinalPrice(totalPriceWithDiscount);
-  }
-
-  private boolean hasCoupon(Cart cart) {
-    return cart.getCoupon() != null;
-  }
-
-  private void ensureCartItemList(Cart cart) {
-    if (cart.getCartItem() == null) {
-      cart.setCartItem(new ArrayList<>());
-    }
   }
 }

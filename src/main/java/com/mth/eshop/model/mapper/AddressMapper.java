@@ -1,8 +1,8 @@
 package com.mth.eshop.model.mapper;
 
 import com.mth.eshop.model.Address;
-import com.mth.eshop.model.record.AddressDTO;
-import com.mth.eshop.model.record.CustomerDTO;
+import com.mth.eshop.model.DTO.AddressDTO;
+import com.mth.eshop.model.DTO.CustomerDTO;
 
 public class AddressMapper {
   public static AddressDTO toAddressDTO(Address address) {

@@ -1,18 +1,17 @@
 package com.mth.eshop.controller;
 
-import com.mth.eshop.exception.EshopException;
-import com.mth.eshop.model.Item;
-import com.mth.eshop.model.record.*;
+import com.mth.eshop.model.DTO.*;
 import com.mth.eshop.service.MainService;
+import java.net.URI;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequestMapping("/")
@@ -32,51 +31,47 @@ public class MainController {
     this.restTemplate = restTemplate;
   }
 
-  @GetMapping
-  public ResponseEntity<?> listAll(
-      @RequestParam(required = false) Integer customerId,
-      @RequestParam(required = false) Integer cartId) {
+  @GetMapping(value = {"/{customerId}/{cartId}", "/"})
+  public ResponseEntity<MainResponse> listAll(
+      @PathVariable(required = false) Integer customerId,
+      @PathVariable(required = false) Integer cartId) {
 
-    List<ItemsDTO> itemList;
-    List<CouponDTO> couponList;
-    CartDTO cartDTO;
-
-    try {
-      itemList = mainService.getAllItems();
-
-      couponList =
-          restTemplate
-              .exchange(
-                  couponBaseUrl,
-                  HttpMethod.GET,
-                  HttpEntity.EMPTY,
-                  new ParameterizedTypeReference<List<CouponDTO>>() {})
-              .getBody();
-
-      if (cartId != null && customerId != null) {
-        String cartUrl =
-            String.format("%s?customerId=%d&cartId=%d", cartBaseUrl, customerId, cartId);
-        cartDTO = restTemplate.getForObject(cartUrl, CartDTO.class);
-      } else {
-        cartDTO = restTemplate.getForObject(cartBaseUrl + "/create", CartDTO.class);
-      }
-    } catch (EshopException e) {
-      return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
+    List<ItemsDTO> itemList = mainService.getAllItems();
+    List<CouponDTO> couponList = fetchCoupons();
+    CartDTO cart;
+    if (customerId == null && cartId == null) {
+      cart = createCart();
+    } else {
+      cart = fetchCart(customerId, cartId);
     }
 
-    MainResponse response = new MainResponse(itemList, cartDTO, couponList);
-    return new ResponseEntity<>(response, HttpStatus.OK);
+    MainResponse response = new MainResponse(itemList, cart, couponList);
+
+    URI location =
+        ServletUriComponentsBuilder.fromCurrentContextPath()
+            .path("/cart/{customerId}/{cartId}")
+            .buildAndExpand(cart.customerId(), cart.id())
+            .toUri();
+
+    return ResponseEntity.ok().header("Location", location.toString()).body(response);
   }
 
-  @PostMapping("/add")
-  public ResponseEntity<?> addItem(@RequestBody Item item) {
-    String message;
+  private List<CouponDTO> fetchCoupons() {
+    return restTemplate
+        .exchange(
+            couponBaseUrl,
+            HttpMethod.GET,
+            HttpEntity.EMPTY,
+            new ParameterizedTypeReference<List<CouponDTO>>() {})
+        .getBody();
+  }
 
-    try {
-      message = mainService.addItem(item);
-    } catch (EshopException e) {
-      return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
-    }
-    return new ResponseEntity<>(message, HttpStatus.OK);
+  private CartDTO fetchCart(Integer customerId, Integer cartId) {
+    String cartUrl = String.format("%s/%d/%d", cartBaseUrl, customerId, cartId);
+    return restTemplate.getForObject(cartUrl, CartDTO.class);
+  }
+
+  private CartDTO createCart() {
+    return restTemplate.getForObject(cartBaseUrl + "/create", CartDTO.class);
   }
 }

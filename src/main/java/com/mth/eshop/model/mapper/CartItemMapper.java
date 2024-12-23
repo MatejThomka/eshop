@@ -1,7 +1,7 @@
 package com.mth.eshop.model.mapper;
 
 import com.mth.eshop.model.CartItem;
-import com.mth.eshop.model.record.CartItemDTO;
+import com.mth.eshop.model.DTO.CartItemDTO;
 
 public class CartItemMapper {
   public static CartItemDTO toCartItemDTO(CartItem cartItem) {

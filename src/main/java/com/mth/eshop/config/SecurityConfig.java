@@ -40,9 +40,9 @@ public class SecurityConfig {
             authorize ->
                 authorize
                     .requestMatchers(
-                        "/", "/cart/**", "/coupon", "/item", "/item/review/add-or-update")
+                        "/**", "/cart/**", "/coupon", "/item", "/item/review/add-or-update")
                     .permitAll()
-                    .requestMatchers("/add", "/coupon/**", "/item/add-or-update", "/item/delete")
+                    .requestMatchers("/coupon/**", "/item/add-or-update", "/item/delete")
                     .hasRole("ADMIN")
                     .anyRequest()
                     .authenticated())

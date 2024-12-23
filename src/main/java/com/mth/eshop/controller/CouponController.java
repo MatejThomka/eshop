@@ -1,57 +1,53 @@
 package com.mth.eshop.controller;
 
-import com.mth.eshop.exception.EshopException;
 import com.mth.eshop.model.Coupon;
-import com.mth.eshop.model.record.CouponDTO;
+import com.mth.eshop.model.DTO.CouponDTO;
 import com.mth.eshop.service.CouponService;
+import jakarta.validation.Valid;
+import java.net.URI;
 import java.util.List;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequestMapping("/coupon")
 public class CouponController {
 
-  private final CouponService couponService;
+  private final CouponService service;
 
-  public CouponController(CouponService couponService) {
-    this.couponService = couponService;
+  public CouponController(CouponService service) {
+    this.service = service;
   }
 
   @GetMapping
-  public ResponseEntity<?> showAllCoupons() {
-    List<CouponDTO> coupons;
+  public ResponseEntity<List<CouponDTO>> showAllCoupons() {
+    List<CouponDTO> coupons = service.showAllCoupons();
+    return ResponseEntity.ok(coupons);
+  }
 
-    try {
-      coupons = couponService.showAllCoupons();
-    } catch (EshopException e) {
-      return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
-    }
-    return new ResponseEntity<>(coupons, HttpStatus.OK);
+  @GetMapping("/{id}")
+  public ResponseEntity<CouponDTO> showCoupon(@PathVariable String id) {
+    CouponDTO coupon = service.getCoupon(id);
+    return ResponseEntity.ok(coupon);
   }
 
   @PostMapping("/add")
-  public ResponseEntity<?> addCoupon(@RequestBody Coupon coupon) {
-    String message;
+  public ResponseEntity<CouponDTO> addCoupon(@Valid @RequestBody Coupon coupon) {
+    CouponDTO addedCoupon = service.createCoupon(coupon);
 
-    try {
-      message = couponService.createCoupon(coupon);
-    } catch (EshopException e) {
-      return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
-    }
-    return new ResponseEntity<>(message, HttpStatus.OK);
+    URI location =
+        ServletUriComponentsBuilder.fromCurrentContextPath()
+            .path("/coupon/{id}")
+            .buildAndExpand(addedCoupon.id())
+            .toUri();
+
+    return ResponseEntity.created(location).body(addedCoupon);
   }
 
-  @DeleteMapping("/delete")
-  public ResponseEntity<?> deleteCoupon(@RequestParam String id) {
-    String message;
-
-    try {
-      message = couponService.removeCoupon(id);
-    } catch (EshopException e) {
-      return new ResponseEntity<>(e.getMessage(), e.getHttpStatus());
-    }
-    return new ResponseEntity<>(message, HttpStatus.OK);
+  @DeleteMapping("/delete/{id}")
+  public ResponseEntity<CouponDTO> deleteCoupon(@PathVariable String id) {
+    CouponDTO coupon = service.removeCoupon(id);
+    return ResponseEntity.ok(coupon);
   }
 }

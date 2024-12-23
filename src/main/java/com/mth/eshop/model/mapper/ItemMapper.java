@@ -1,15 +1,15 @@
 package com.mth.eshop.model.mapper;
 
+import com.mth.eshop.model.DTO.ItemDTO;
+import com.mth.eshop.model.DTO.ReviewDTO;
 import com.mth.eshop.model.Item;
-import com.mth.eshop.model.record.ItemDTO;
-import com.mth.eshop.model.record.ReviewDTO;
 import java.util.List;
 
 public class ItemMapper {
   public static ItemDTO toItemDTO(Item item) {
     List<ReviewDTO> reviews = item.getReview().stream().map(ReviewMapper::toReviewDTO).toList();
 
-    Double roundedStars = Math.round(item.getStars() * 10.0) / 10.0;
+    Double roundedStars = item.getStars() != null ? Math.round(item.getStars() * 10.0) / 10.0 : 0.0;
 
     return new ItemDTO(
         item.getId(),

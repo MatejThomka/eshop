@@ -18,7 +18,10 @@ public class Review {
   Integer id;
 
   String fromCustomer;
-  @NotNull(message = "Review Stars cannot be null") Double stars;
+
+  @NotNull(message = "Review Stars cannot be null")
+  Double stars;
+
   String description;
   @ManyToOne Item item;
 }

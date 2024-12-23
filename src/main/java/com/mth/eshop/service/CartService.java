@@ -9,10 +9,10 @@ import com.mth.eshop.model.DTO.CartDTO;
 import com.mth.eshop.model.mapper.CartMapper;
 import com.mth.eshop.repository.*;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CartService {
@@ -35,6 +35,7 @@ public class CartService {
     this.couponRepository = couponRepository;
   }
 
+  @Transactional
   public CartDTO createCart() {
     Customer temporaryCustomer = new Customer();
     temporaryCustomer.setTemporary(true);
@@ -42,7 +43,7 @@ public class CartService {
 
     Cart cart = new Cart();
     cart.setCustomer(temporaryCustomer);
-    cart.setCartItem(new ArrayList<>());
+    ensureCartItemList(cart);
     cart.setQuantity(0);
     cart.setFinalPrice(0.0);
     cart.setCoupon(null);
@@ -52,42 +53,21 @@ public class CartService {
     return CartMapper.toCartDTO(cart);
   }
 
+  @Transactional(readOnly = true)
   public CartDTO showCart(Integer cartId, Integer customerId) throws EshopException {
-    Optional<Cart> cartOptional = cartRepository.findCartByIdAndCustomer_Id(cartId, customerId);
-
-    if (cartOptional.isEmpty()) {
-      throw new CartException(
-          "Cart with ID: " + cartId + ", for customer ID: " + customerId + " doesn't exists!",
-          HttpStatus.NOT_FOUND);
-    }
-
-    return CartMapper.toCartDTO(cartOptional.get());
+    return CartMapper.toCartDTO(findCart(cartId, customerId));
   }
 
+  @Transactional
   public CartDTO addToCart(Integer customerId, Integer cartId, String itemId)
       throws EshopException {
-
-    Optional<Cart> cartOptional = cartRepository.findCartByIdAndCustomer_Id(cartId, customerId);
-
-    if (cartOptional.isEmpty()) {
-      throw new CartException("Cart doesn't exists with ID: " + cartId, HttpStatus.NOT_FOUND);
-    }
-
-    Cart cart = cartOptional.get();
-
-    Optional<Item> itemOptional = itemRepository.findById(itemId);
-
-    if (itemOptional.isEmpty()) {
-      throw new ItemException("Item doesn't exists with ID: " + itemId, HttpStatus.NOT_FOUND);
-    }
-
-    Item item = itemOptional.get();
+    Cart cart = findCart(cartId, customerId);
+    ensureCartItemList(cart);
+    Item item = findItem(itemId);
 
     if (item.getStockQuantity() == 0) {
       throw new ItemException("Item with ID: " + itemId + " is sold out!", HttpStatus.BAD_REQUEST);
     }
-
-    List<CartItem> cartItems = new ArrayList<>(cart.getCartItem());
 
     Optional<CartItem> cartItemOptional =
         cartItemRepository.findCartItemByIdAndCart_Id(itemId, cartId);
@@ -95,7 +75,7 @@ public class CartService {
     if (cartItemOptional.isEmpty()) {
       CartItem newCartItem = new CartItem(item.getId(), item.getName(), 1, item.getPrice(), cart);
       cartItemRepository.save(newCartItem);
-      cartItems.add(newCartItem);
+      cart.getCartItem().add(newCartItem);
     } else {
       CartItem existingCartItem = cartItemOptional.get();
       existingCartItem.setQuantity(existingCartItem.getQuantity() + 1);
@@ -103,47 +83,18 @@ public class CartService {
       cartItemRepository.save(existingCartItem);
     }
 
-    int totalQuantity = cartItems.stream().mapToInt(CartItem::getQuantity).sum();
-    double totalPrice = cartItems.stream().mapToDouble(CartItem::getPrice).sum();
-
-    cart.setCartItem(cartItems);
-    cart.setQuantity(totalQuantity);
-    cart.setOriginalPrice(totalPrice);
-    cart.setFinalPrice(totalPrice);
-
-    cartRepository.save(cart);
+    finalizeCartUpdates(cart);
 
     return CartMapper.toCartDTO(cart);
   }
 
+  @Transactional
   public CartDTO removeItemFromCart(Integer customerId, Integer cartId, String itemId)
       throws EshopException {
-    Optional<Cart> cartOptional = cartRepository.findCartByIdAndCustomer_Id(cartId, customerId);
-    Optional<Item> itemOptional = itemRepository.findById(itemId);
-
-    if (cartOptional.isEmpty()) {
-      throw new CartException(
-          "Cart doesn't exists with ID: " + cartId + " for customer ID: " + customerId + "!",
-          HttpStatus.NOT_FOUND);
-    }
-
-    Cart cart = cartOptional.get();
-
-    Optional<CartItem> cartItemOptional =
-        cartItemRepository.findCartItemByIdAndCart_Id(itemId, cart.getId());
-
-    if (cartItemOptional.isEmpty()) {
-      throw new CartException(
-          "Item doesn't exists in this cart: " + cartId + ", with this ID: " + itemId,
-          HttpStatus.NOT_FOUND);
-    }
-
-    if (itemOptional.isEmpty()) {
-      throw new ItemException("Item doesn't exists with this ID: " + itemId, HttpStatus.NOT_FOUND);
-    }
-
-    CartItem cartItem = cartItemOptional.get();
-    Item item = itemOptional.get();
+    Cart cart = findCart(cartId, customerId);
+    ensureCartItemList(cart);
+    CartItem cartItem = findCartItem(itemId, cart.getId());
+    Item item = findItem(itemId);
 
     if (cartItem.getQuantity() > 1) {
       cartItem.setQuantity(cartItem.getQuantity() - 1);
@@ -154,66 +105,32 @@ public class CartService {
       cartItemRepository.delete(cartItem);
     }
 
-    int totalQuantity = cart.getCartItem().stream().mapToInt(CartItem::getQuantity).sum();
-    double totalPrice = cart.getCartItem().stream().mapToDouble(CartItem::getPrice).sum();
-
-    cart.setQuantity(totalQuantity);
-    cart.setOriginalPrice(totalPrice);
-    cart.setFinalPrice(totalPrice);
-
-    cartRepository.save(cart);
+    finalizeCartUpdates(cart);
 
     return CartMapper.toCartDTO(cart);
   }
 
-  public CartDTO recalculateCart(Integer customerId, Integer cartId) throws EshopException {
-    Optional<Cart> cartOptional = cartRepository.findCartByIdAndCustomer_Id(cartId, customerId);
-    double discount = 0;
-    double totalPrice;
+  @Transactional
+  public CartDTO updateCartWithOrWithoutDiscount(Integer customerId, Integer cartId)
+      throws EshopException {
+    Cart cart = findCart(cartId, customerId);
 
-    if (cartOptional.isEmpty()) {
-      throw new CartException(
-          "Cart doesn't exists with ID: " + cartId + " for customer ID: " + customerId + "!",
-          HttpStatus.NOT_FOUND);
-    }
-
-    Cart cart = cartOptional.get();
-
-    if (cart.getCoupon() != null) {
-      discount = cart.getOriginalPrice() * (cart.getCoupon().getDiscountInPercentage() / 100.0);
-      totalPrice = cart.getOriginalPrice() - discount;
+    if (hasCoupon(cart)) {
+      applyDiscountAndUpdateCart(cart);
     } else {
-      totalPrice = cart.getCartItem().stream().mapToDouble(CartItem::getPrice).sum();
+      updateCartTotals(cart);
     }
-
-    int totalQuantity = cart.getCartItem().stream().mapToInt(CartItem::getQuantity).sum();
-
-    cart.setQuantity(totalQuantity);
-    cart.setFinalPrice(totalPrice);
 
     cartRepository.save(cart);
 
     return CartMapper.toCartDTO(cart);
   }
 
+  @Transactional
   public CartDTO addDiscountCoupon(Integer customerId, Integer cartId, String couponId)
       throws EshopException {
-    Optional<Cart> cartOptional = cartRepository.findCartByIdAndCustomer_Id(cartId, customerId);
-    Optional<Coupon> couponOptional = couponRepository.findById(couponId);
-    double discount = 0;
-
-    if (cartOptional.isEmpty()) {
-      throw new CartException(
-          "Cart doesn't exists with ID: " + cartId + " for customer ID: " + customerId + "!",
-          HttpStatus.NOT_FOUND);
-    }
-
-    if (couponOptional.isEmpty()) {
-      throw new CouponException("Coupon doesn't exists!", HttpStatus.NOT_FOUND);
-    }
-
-    Cart cart = cartOptional.get();
-    Coupon newCoupon = couponOptional.get();
+    Cart cart = findCart(cartId, customerId);
+    Coupon newCoupon = findCoupon(couponId);
     Coupon oldCoupon = cart.getCoupon();
 
     cart.setCoupon(null);
@@ -225,60 +142,107 @@ public class CartService {
 
     cart.setCoupon(newCoupon);
 
-    if (cart.getCoupon() != null) {
-      discount = cart.getOriginalPrice() * (cart.getCoupon().getDiscountInPercentage() / 100.0);
+    if (hasCoupon(cart)) {
+      applyDiscountAndUpdateCart(cart);
     }
 
-    double totalPriceWithDiscount = cart.getOriginalPrice() - discount;
-
-    cart.setFinalPrice(totalPriceWithDiscount);
-
     cartRepository.save(cart);
-
     newCoupon.getCart().add(cart);
     couponRepository.save(newCoupon);
 
     return CartMapper.toCartDTO(cart);
   }
 
-  public CartDTO removeDiscountCoupon(Integer customerId, Integer cartId) {
-    Optional<Cart> cartOptional = cartRepository.findCartByIdAndCustomer_Id(cartId, customerId);
-
-    if (cartOptional.isEmpty()) {
-      throw new CartException(
-          "Cart doesn't exists with ID: " + cartId + " for customer ID: " + customerId + "!",
-          HttpStatus.NOT_FOUND);
-    }
-
-    Cart cart = cartOptional.get();
-
-    if (cart.getCoupon() == null) {
-      throw new CouponException("Coupon doesn't exists in this cart!", HttpStatus.NOT_FOUND);
-    }
-
-    Optional<Coupon> couponOptional = couponRepository.findById(cart.getCoupon().getId());
-
-    if (couponOptional.isEmpty()) {
-      throw new CouponException("Coupon doesn't exists!", HttpStatus.NOT_FOUND);
-    }
-
-    Coupon coupon = couponOptional.get();
-
-    if (cart.getCoupon() == null) {
-      throw new CartException("Cart hasn't any coupon!", HttpStatus.NOT_FOUND);
+  @Transactional
+  public CartDTO removeDiscountCoupon(Integer customerId, Integer cartId) throws EshopException {
+    Cart cart = findCart(cartId, customerId);
+    Coupon coupon = cart.getCoupon();
+    if (coupon == null) {
+      throw new CouponException("No coupon found in the cart to remove!", HttpStatus.NOT_FOUND);
     }
 
     cart.setCoupon(null);
-
-    double totalPrice = cart.getCartItem().stream().mapToDouble(CartItem::getPrice).sum();
-
-    cart.setFinalPrice(totalPrice);
+    updateCartTotals(cart);
 
     cartRepository.save(cart);
-
     coupon.getCart().remove(cart);
     couponRepository.save(coupon);
 
     return CartMapper.toCartDTO(cart);
+  }
+
+  @Transactional(readOnly = true)
+  protected Cart findCart(Integer cartId, Integer customerId) throws EshopException {
+    return cartRepository
+        .findCartByIdAndCustomer_Id(cartId, customerId)
+        .orElseThrow(
+            () ->
+                new CartException(
+                    "Cart ID: " + cartId + " with customer ID: " + customerId + " doesn't exist!",
+                    HttpStatus.NOT_FOUND));
+  }
+
+  @Transactional(readOnly = true)
+  protected Item findItem(String itemId) throws EshopException {
+    return itemRepository
+        .findById(itemId)
+        .orElseThrow(
+            () -> new ItemException("Item doesn't exist with ID: " + itemId, HttpStatus.NOT_FOUND));
+  }
+
+  @Transactional(readOnly = true)
+  protected Coupon findCoupon(String couponId) throws EshopException {
+    return couponRepository
+        .findById(couponId)
+        .orElseThrow(() -> new CouponException("Coupon doesn't exist!", HttpStatus.NOT_FOUND));
+  }
+
+  @Transactional(readOnly = true)
+  protected CartItem findCartItem(String itemId, Integer cartId) throws EshopException {
+    return cartItemRepository
+        .findCartItemByIdAndCart_Id(itemId, cartId)
+        .orElseThrow(
+            () -> new ItemException("Item doesn't exist with ID: " + itemId, HttpStatus.NOT_FOUND));
+  }
+
+  @Transactional
+  protected void finalizeCartUpdates(Cart cart) {
+    updateCartTotals(cart);
+    if (hasCoupon(cart)) {
+      applyDiscountAndUpdateCart(cart);
+    }
+    cartRepository.save(cart);
+  }
+
+  private void updateCartTotals(Cart cart) {
+    int totalQuantity = cart.getCartItem().stream().mapToInt(CartItem::getQuantity).sum();
+    double totalPrice = cart.getCartItem().stream().mapToDouble(CartItem::getPrice).sum();
+
+    cart.setQuantity(totalQuantity);
+    cart.setOriginalPrice(totalPrice);
+    cart.setFinalPrice(totalPrice);
+  }
+
+  private double calculateDiscount(Cart cart) {
+    if (cart.getCoupon() == null) {
+      return 0.0;
+    }
+    return cart.getOriginalPrice() * (cart.getCoupon().getDiscountInPercentage() / 100.0);
+  }
+
+  private void applyDiscountAndUpdateCart(Cart cart) {
+    double discount = calculateDiscount(cart);
+    double totalPriceWithDiscount = cart.getOriginalPrice() - discount;
+    cart.setFinalPrice(totalPriceWithDiscount);
+  }
+
+  private boolean hasCoupon(Cart cart) {
+    return cart.getCoupon() != null;
+  }
+
+  private void ensureCartItemList(Cart cart) {
+    if (cart.getCartItem() == null) {
+      cart.setCartItem(new ArrayList<>());
+    }
   }
 }

@@ -31,7 +31,7 @@ public class MainController {
     this.restTemplate = restTemplate;
   }
 
-  @GetMapping("/{customerId}/{cartId}")
+  @GetMapping(value = {"/{customerId}/{cartId}", "/"})
   public ResponseEntity<MainResponse> listAll(
       @PathVariable(required = false) Integer customerId,
       @PathVariable(required = false) Integer cartId) {

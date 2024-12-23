@@ -18,8 +18,12 @@ import lombok.Setter;
 public class Item {
   @Id String id;
 
-  @NotBlank(message = "Item Name cannot be blank") String name;
-  @NotNull(message = "Item Price cannot be null") Double price;
+  @NotBlank(message = "Item Name cannot be blank")
+  String name;
+
+  @NotNull(message = "Item Price cannot be null")
+  Double price;
+
   String description;
   Integer stockQuantity;
   Double stars;

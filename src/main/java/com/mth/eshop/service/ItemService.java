@@ -15,8 +15,6 @@ import com.mth.eshop.repository.ItemRepository;
 import com.mth.eshop.repository.ReviewRepository;
 import java.util.List;
 import java.util.Optional;
-
-
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

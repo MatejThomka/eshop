@@ -57,7 +57,7 @@ public class CartController {
   @PatchMapping("/{customerId}/{cartId}/recalculate")
   public ResponseEntity<CartDTO> recalculate(
       @PathVariable Integer customerId, @PathVariable Integer cartId) {
-    CartDTO cart = service.recalculateCart(customerId, cartId);
+    CartDTO cart = service.updateCartWithOrWithoutDiscount(customerId, cartId);
     return ResponseEntity.ok(cart);
   }
 

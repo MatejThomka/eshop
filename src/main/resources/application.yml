@@ -3,7 +3,7 @@ spring:
     name: Eshop
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${DATABASE_URL}
+    url: ${DATABASE_URL_DOCKER}
     username: ${DATABASE_USERNAME}
     password: ${DATABASE_PASSWORD}
   jpa:

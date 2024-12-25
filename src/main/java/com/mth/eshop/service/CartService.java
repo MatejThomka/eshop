@@ -1,6 +1,6 @@
 package com.mth.eshop.service;
 
-import static com.mth.eshop.util.CartUtils.*;
+import static com.mth.eshop.util.CartHelper.*;
 
 import com.mth.eshop.exception.CartException;
 import com.mth.eshop.exception.CouponException;

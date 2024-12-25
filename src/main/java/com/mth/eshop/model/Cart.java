@@ -18,7 +18,10 @@ public class Cart {
   Integer id;
 
   @OneToOne Customer customer;
-  @OneToMany List<CartItem> cartItem;
+
+  @OneToMany(fetch = FetchType.EAGER)
+  List<CartItem> cartItem;
+
   Integer quantity;
   Double finalPrice;
   Double originalPrice;

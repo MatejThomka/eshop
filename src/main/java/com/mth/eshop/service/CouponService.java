@@ -29,11 +29,7 @@ public class CouponService {
   }
 
   public CouponDTO createCoupon(Coupon coupon) throws EshopException {
-    Optional<Coupon> couponOptional = couponRepository.findById(coupon.getId());
-
-    if (couponOptional.isPresent()) {
-      throw new CouponException("Coupon is already exists!", HttpStatus.CONFLICT);
-    }
+    validateCouponDoesNotExist(coupon.getId());
 
     couponRepository.save(coupon);
 
@@ -41,21 +37,9 @@ public class CouponService {
   }
 
   public CouponDTO removeCoupon(String couponId) throws EshopException {
-    Optional<Coupon> couponOptional = couponRepository.findById(couponId);
+    Coupon coupon = findCoupon(couponId);
 
-    if (couponOptional.isEmpty()) {
-      throw new CouponException("Coupon doesn't exists!", HttpStatus.NOT_FOUND);
-    }
-
-    Coupon coupon = couponOptional.get();
-
-    List<Cart> cartWithCoupon = cartRepository.findByCoupon(coupon);
-
-    for (Cart cart : cartWithCoupon) {
-      cart.setCoupon(null);
-      cart.setFinalPrice(cart.getOriginalPrice());
-      cartRepository.save(cart);
-    }
+    removeCouponFromCarts(coupon);
 
     couponRepository.delete(coupon);
 
@@ -72,5 +56,29 @@ public class CouponService {
     Coupon coupon = couponOptional.get();
 
     return CouponMapper.toCouponDTO(coupon);
+  }
+
+  private void validateCouponDoesNotExist(String id) throws EshopException {
+    if (couponRepository.findById(id).isPresent()) {
+      throw new CouponException("Coupon is already exists!", HttpStatus.CONFLICT);
+    }
+  }
+
+  private Coupon findCoupon(String id) throws EshopException {
+    return couponRepository
+        .findById(id)
+        .orElseThrow(() -> new CouponException("Coupon doesn't exists!", HttpStatus.NOT_FOUND));
+  }
+
+  private void removeCouponFromCarts(Coupon coupon) {
+    List<Cart> cartWithCoupon = cartRepository.findByCoupon(coupon);
+
+    cartWithCoupon.forEach(
+        cart -> {
+          cart.setCoupon(null);
+          cart.setFinalPrice(cart.getOriginalPrice());
+        });
+
+    cartRepository.saveAll(cartWithCoupon);
   }
 }

@@ -1,16 +1,17 @@
 package com.mth.eshop.config;
 
+import com.mth.eshop.repository.UserRepository;
+import com.mth.eshop.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -18,19 +19,8 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
   @Bean
-  public UserDetailsService userDetailsService() {
-    InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-    manager.createUser(
-        User.withUsername("user")
-            .password(passwordEncoder().encode("password"))
-            .roles("USER")
-            .build());
-    manager.createUser(
-        User.withUsername("admin")
-            .password(passwordEncoder().encode("adminPassword"))
-            .roles("ADMIN")
-            .build());
-    return manager;
+  public UserDetailsService userDetailsService(UserRepository userRepository) {
+    return new CustomUserDetailsService(userRepository);
   }
 
   @Bean
@@ -40,13 +30,58 @@ public class SecurityConfig {
             authorize ->
                 authorize
                     .requestMatchers(
-                        "/**", "/cart/**", "/coupon", "/item", "/item/review/add-or-update")
+                        "/**",
+                        "/cart/**",
+                        "/coupon",
+                        "/item",
+                        "/item/review/add-or-update",
+                        "/user/login",
+                        "/user/register")
                     .permitAll()
+                    .requestMatchers("/user/**")
+                    .hasRole("CUSTOMER")
                     .requestMatchers("/coupon/**", "/item/add-or-update", "/item/delete")
                     .hasRole("ADMIN")
                     .anyRequest()
                     .authenticated())
-        .formLogin(Customizer.withDefaults())
+        .formLogin(
+            login ->
+                login
+                    .loginProcessingUrl("/user/login")
+                    .successHandler(
+                        (request, response, authentication) -> {
+                          response.setContentType("application/json");
+                          response.setStatus(HttpStatus.OK.value());
+                          response
+                              .getWriter()
+                              .write(
+                                  "{\"status\": \"success\", \"message\": \"Login successful\"}");
+                          response.getWriter().flush();
+                        })
+                    .failureHandler(
+                        (request, response, exception) -> {
+                          response.setContentType("application/json");
+                          response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                          response
+                              .getWriter()
+                              .write("{\"status\": \"error\", \"message\": \"Login failed\"}");
+                          response.getWriter().flush();
+                        }))
+        .logout(
+            logout ->
+                logout
+                    .logoutUrl("/user/logout")
+                    .logoutSuccessHandler(
+                        (request, response, authentication) -> {
+                          response.setContentType("application/json");
+                          response.setStatus(HttpStatus.OK.value());
+                          response
+                              .getWriter()
+                              .write(
+                                  "{\"status\": \"success\", \"message\": \"Logout successful\"}");
+                          response.getWriter().flush();
+                        }))
+        .sessionManagement(session -> session.maximumSessions(1).maxSessionsPreventsLogin(false))
         .httpBasic(Customizer.withDefaults());
 
     return http.build();

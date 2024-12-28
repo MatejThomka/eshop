@@ -2,12 +2,12 @@ package com.mth.eshop.model.mapper;
 
 import com.mth.eshop.model.Address;
 import com.mth.eshop.model.DTO.AddressDTO;
-import com.mth.eshop.model.DTO.CustomerDTO;
+import com.mth.eshop.model.DTO.UserDTO;
 
 public class AddressMapper {
   public static AddressDTO toAddressDTO(Address address) {
-    CustomerDTO customer =
-        address.getCustomer() != null ? CustomerMapper.toCustomerDTO(address.getCustomer()) : null;
+    UserDTO customer =
+        address.getUser() != null ? UserMapper.toCustomerDTO(address.getUser()) : null;
 
     return new AddressDTO(
         address.getId(),

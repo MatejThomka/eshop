@@ -23,6 +23,6 @@ public class MainService {
     return Optional.of(itemRepository.count())
         .filter(count -> count > 0)
         .map(count -> itemRepository.findAll().stream().map(ItemsMapper::toItemsDTO).toList())
-        .orElseThrow(() -> new ItemException("There is nothing!", HttpStatus.NOT_FOUND));
+        .orElse(List.of());
   }
 }

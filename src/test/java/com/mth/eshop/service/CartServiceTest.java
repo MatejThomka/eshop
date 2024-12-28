@@ -19,7 +19,7 @@ class CartServiceTest {
   @Mock private CartRepository cartRepository;
   @Mock private ItemRepository itemRepository;
   @Mock private CartItemRepository cartItemRepository;
-  @Mock private CustomerRepository customerRepository;
+  @Mock private UserRepository userRepository;
   @Mock private CouponRepository couponRepository;
 
   private CartService cartService;
@@ -32,19 +32,19 @@ class CartServiceTest {
             cartRepository,
             itemRepository,
             cartItemRepository,
-            customerRepository,
+                userRepository,
             couponRepository);
   }
 
   @Test
   void createCart_createsCartSuccessfully() {
     // Arrange
-    Customer temporaryCustomer = new Customer();
-    temporaryCustomer.setTemporary(true);
-    when(customerRepository.save(any(Customer.class))).thenReturn(temporaryCustomer);
+    User temporaryUser = new User();
+    temporaryUser.setTemporary(true);
+    when(userRepository.save(any(User.class))).thenReturn(temporaryUser);
 
     Cart cart = new Cart();
-    cart.setCustomer(temporaryCustomer);
+    cart.setUser(temporaryUser);
     cart.setQuantity(0);
     cart.setFinalPrice(0.0);
     when(cartRepository.save(any(Cart.class))).thenReturn(cart);
@@ -56,7 +56,7 @@ class CartServiceTest {
     assertNotNull(result);
     assertEquals(0, result.quantity());
     assertEquals(0.0, result.finalPrice());
-    verify(customerRepository).save(any(Customer.class));
+    verify(userRepository).save(any(User.class));
     verify(cartRepository).save(any(Cart.class));
   }
 
@@ -65,10 +65,10 @@ class CartServiceTest {
     // Arrange
     Cart cart = new Cart();
     cart.setId(1);
-    Customer customer = new Customer();
-    customer.setId(1);
-    cart.setCustomer(customer);
-    when(cartRepository.findCartByIdAndCustomer_Id(1, 1)).thenReturn(Optional.of(cart));
+    User user = new User();
+    user.setId(1);
+    cart.setUser(user);
+    when(cartRepository.findCartByIdAndUser_Id(1, 1)).thenReturn(Optional.of(cart));
 
     // Act
     CartDTO result = cartService.showCart(1, 1);
@@ -76,18 +76,18 @@ class CartServiceTest {
     // Assert
     assertNotNull(result);
     assertEquals(1, result.id());
-    verify(cartRepository).findCartByIdAndCustomer_Id(1, 1);
+    verify(cartRepository).findCartByIdAndUser_Id(1, 1);
   }
 
   @Test
   void showCart_throwsExceptionWhenCartNotFound() {
     // Arrange
-    when(cartRepository.findCartByIdAndCustomer_Id(1, 1)).thenReturn(Optional.empty());
+    when(cartRepository.findCartByIdAndUser_Id(1, 1)).thenReturn(Optional.empty());
 
     // Act & Assert
     CartException exception = assertThrows(CartException.class, () -> cartService.showCart(1, 1));
     assertEquals("Cart ID: 1 with customer ID: 1 doesn't exist!", exception.getMessage());
-    verify(cartRepository).findCartByIdAndCustomer_Id(1, 1);
+    verify(cartRepository).findCartByIdAndUser_Id(1, 1);
   }
 
   @Test
@@ -95,16 +95,16 @@ class CartServiceTest {
     // Arrange
     Cart cart = new Cart();
     cart.setId(1);
-    Customer customer = new Customer();
-    customer.setId(1);
-    cart.setCustomer(customer);
+    User user = new User();
+    user.setId(1);
+    cart.setUser(user);
 
     Item item = new Item();
     item.setId("item1");
     item.setStockQuantity(10);
     item.setPrice(100.0);
 
-    when(cartRepository.findCartByIdAndCustomer_Id(1, 1)).thenReturn(Optional.of(cart));
+    when(cartRepository.findCartByIdAndUser_Id(1, 1)).thenReturn(Optional.of(cart));
     when(itemRepository.findById("item1")).thenReturn(Optional.of(item));
     when(cartItemRepository.findCartItemByIdAndCart_Id("item1", 1)).thenReturn(Optional.empty());
     when(cartRepository.save(any(Cart.class))).thenReturn(cart);
@@ -114,7 +114,7 @@ class CartServiceTest {
 
     // Assert
     assertNotNull(result);
-    verify(cartRepository).findCartByIdAndCustomer_Id(1, 1);
+    verify(cartRepository).findCartByIdAndUser_Id(1, 1);
     verify(itemRepository).findById("item1");
     verify(cartItemRepository).findCartItemByIdAndCart_Id("item1", 1);
     verify(cartItemRepository).save(any(CartItem.class));
@@ -126,15 +126,15 @@ class CartServiceTest {
     // Arrange
     Cart cart = new Cart();
     cart.setId(1);
-    Customer customer = new Customer();
-    customer.setId(1);
-    cart.setCustomer(customer);
+    User user = new User();
+    user.setId(1);
+    cart.setUser(user);
 
     Item item = new Item();
     item.setId("item1");
     item.setStockQuantity(0);
 
-    when(cartRepository.findCartByIdAndCustomer_Id(1, 1)).thenReturn(Optional.of(cart));
+    when(cartRepository.findCartByIdAndUser_Id(1, 1)).thenReturn(Optional.of(cart));
     when(itemRepository.findById("item1")).thenReturn(Optional.of(item));
 
     // Act & Assert

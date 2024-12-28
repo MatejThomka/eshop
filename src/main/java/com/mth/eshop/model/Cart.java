@@ -17,7 +17,8 @@ public class Cart {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   Integer id;
 
-  @OneToOne Customer customer;
+  @OneToOne
+  User user;
 
   @OneToMany(fetch = FetchType.EAGER)
   List<CartItem> cartItem;

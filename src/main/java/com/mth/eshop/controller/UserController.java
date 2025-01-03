@@ -1,8 +1,8 @@
 package com.mth.eshop.controller;
 
-import com.mth.eshop.model.DTO.UserDTO;
 import com.mth.eshop.model.DTO.LoginDTO;
 import com.mth.eshop.model.DTO.RegisterDTO;
+import com.mth.eshop.model.DTO.UserDTO;
 import com.mth.eshop.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -19,20 +19,20 @@ public class UserController {
     this.userService = userService;
   }
 
-  @GetMapping("/{id}")
-  public ResponseEntity<UserDTO> userDetails(@PathVariable Integer id) {
-    UserDTO customer = userService.getUserDetails(id);
-    return ResponseEntity.ok(customer);
+  @GetMapping("/details")
+  public ResponseEntity<UserDTO> userDetails() {
+    UserDTO user = userService.getUserDetails();
+    return ResponseEntity.ok(user);
   }
 
-  @PostMapping("/register/{customerId}/{cartId}")
+  @PostMapping("/register/{userId}/{cartId}")
   public ResponseEntity<UserDTO> registerUser(
-      @PathVariable Integer customerId,
+      @PathVariable Integer userId,
       @PathVariable Integer cartId,
       @Valid @RequestBody RegisterDTO registerDTO) {
-    UserDTO customer = userService.registerUser(customerId, cartId, registerDTO);
+    UserDTO user = userService.registerUser(userId, cartId, registerDTO);
 
-    return ResponseEntity.status(HttpStatus.CREATED).body(customer);
+    return ResponseEntity.status(HttpStatus.CREATED).body(user);
   }
 
   @PostMapping("/login")
@@ -48,7 +48,7 @@ public class UserController {
 
   @PatchMapping("/update")
   public ResponseEntity<UserDTO> updateUser(@Valid @RequestBody UserDTO userDTO) {
-    UserDTO updatedCustomer = userService.updateUser(userDTO);
-    return ResponseEntity.ok(updatedCustomer);
+    UserDTO updatedUser = userService.updateUser(userDTO);
+    return ResponseEntity.ok(updatedUser);
   }
 }

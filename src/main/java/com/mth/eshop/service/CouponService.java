@@ -1,5 +1,8 @@
 package com.mth.eshop.service;
 
+import static com.mth.eshop.util.GlobalHelper.validateAccess;
+import static com.mth.eshop.util.GlobalHelper.validateAccessForAdmin;
+
 import com.mth.eshop.exception.CouponException;
 import com.mth.eshop.exception.EshopException;
 import com.mth.eshop.model.Cart;
@@ -29,6 +32,8 @@ public class CouponService {
   }
 
   public CouponDTO createCoupon(Coupon coupon) throws EshopException {
+    validateAccessForAdmin();
+
     validateCouponDoesNotExist(coupon.getId());
 
     couponRepository.save(coupon);
@@ -37,6 +42,8 @@ public class CouponService {
   }
 
   public CouponDTO removeCoupon(String couponId) throws EshopException {
+    validateAccessForAdmin();
+
     Coupon coupon = findCoupon(couponId);
 
     removeCouponFromCarts(coupon);

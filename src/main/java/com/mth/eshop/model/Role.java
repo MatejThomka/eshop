@@ -2,7 +2,7 @@ package com.mth.eshop.model;
 
 public enum Role {
   ADMIN("ROLE_ADMIN"),
-  CUSTOMER("ROLE_CUSTOMER");
+  USER("ROLE_USER");
 
   private final String value;
 

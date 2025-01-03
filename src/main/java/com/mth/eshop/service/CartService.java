@@ -40,7 +40,7 @@ public class CartService {
   public CartDTO createCart() {
     User temporaryUser = new User();
     temporaryUser.setTemporary(true);
-    temporaryUser.setRole(Role.CUSTOMER);
+    temporaryUser.setRole(Role.USER);
     userRepository.save(temporaryUser);
 
     Cart cart = new Cart();
@@ -61,8 +61,7 @@ public class CartService {
   }
 
   @Transactional
-  public CartDTO addToCart(Integer userId, Integer cartId, String itemId)
-      throws EshopException {
+  public CartDTO addToCart(Integer userId, Integer cartId, String itemId) throws EshopException {
     Cart cart = findCart(cartId, userId);
     ensureCartItemList(cart);
     Item item = findItem(itemId);

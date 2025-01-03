@@ -1,7 +1,7 @@
 package com.mth.eshop.util;
 
-import com.mth.eshop.exception.UserException;
 import com.mth.eshop.exception.EshopException;
+import com.mth.eshop.exception.UserException;
 import org.springframework.http.HttpStatus;
 
 public class UserHelper {

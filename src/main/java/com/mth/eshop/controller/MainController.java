@@ -31,18 +31,18 @@ public class MainController {
     this.restTemplate = restTemplate;
   }
 
-  @GetMapping(value = {"/{customerId}/{cartId}", "/"})
+  @GetMapping(value = {"/{userId}/{cartId}", "/"})
   public ResponseEntity<MainResponse> listAll(
-      @PathVariable(required = false) Integer customerId,
+      @PathVariable(required = false) Integer userId,
       @PathVariable(required = false) Integer cartId) {
 
     List<ItemsDTO> itemList = mainService.getAllItems();
     List<CouponDTO> couponList = fetchCoupons();
     CartDTO cart;
-    if (customerId == null && cartId == null) {
+    if (userId == null && cartId == null) {
       cart = createCart();
     } else {
-      cart = fetchCart(customerId, cartId);
+      cart = fetchCart(userId, cartId);
     }
 
     MainResponse response = new MainResponse(itemList, cart, couponList);
@@ -66,8 +66,8 @@ public class MainController {
         .getBody();
   }
 
-  private CartDTO fetchCart(Integer customerId, Integer cartId) {
-    String cartUrl = String.format("%s/%d/%d", cartBaseUrl, customerId, cartId);
+  private CartDTO fetchCart(Integer userId, Integer cartId) {
+    String cartUrl = String.format("%s/%d/%d", cartBaseUrl, userId, cartId);
     return restTemplate.getForObject(cartUrl, CartDTO.class);
   }
 

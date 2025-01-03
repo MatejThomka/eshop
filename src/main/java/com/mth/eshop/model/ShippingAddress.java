@@ -18,6 +18,5 @@ public class ShippingAddress {
   String city;
   Integer zip;
   String country;
-  @ManyToOne
-  User user;
+  @ManyToOne User user;
 }

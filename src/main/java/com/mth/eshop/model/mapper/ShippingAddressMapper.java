@@ -1,7 +1,7 @@
 package com.mth.eshop.model.mapper;
 
-import com.mth.eshop.model.DTO.UserDTO;
 import com.mth.eshop.model.DTO.ShippingAddressDTO;
+import com.mth.eshop.model.DTO.UserDTO;
 import com.mth.eshop.model.ShippingAddress;
 
 public class ShippingAddressMapper {

@@ -15,6 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import static com.mth.eshop.util.GlobalHelper.validateAccess;
+import static com.mth.eshop.util.SecurityUtil.getCurrentUserEmail;
+import static com.mth.eshop.util.SecurityUtil.hasRole;
 import static com.mth.eshop.util.UserHelper.*;
 
 @Service
@@ -24,21 +27,26 @@ public class UserService {
   CartRepository cartRepository;
   PasswordEncoder passwordEncoder;
 
-  public UserService(UserRepository userRepository, CartRepository cartRepository, PasswordEncoder passwordEncoder) {
+  public UserService(
+      UserRepository userRepository,
+      CartRepository cartRepository,
+      PasswordEncoder passwordEncoder) {
     this.userRepository = userRepository;
     this.cartRepository = cartRepository;
     this.passwordEncoder = passwordEncoder;
   }
 
-  public UserDTO getUserDetails(Integer id) throws EshopException {
-    isIdValid(id);
+  public UserDTO getUserDetails() throws EshopException {
+    String email = getCurrentUserEmail();
+    validateAccess();
 
-    User user = findUserById(id);
+    User user = findUserByEmail(email);
 
     return UserMapper.toCustomerDTO(user);
   }
 
-  public UserDTO registerUser(Integer customerId, Integer cartId, RegisterDTO registerDTO) throws EshopException {
+  public UserDTO registerUser(Integer customerId, Integer cartId, RegisterDTO registerDTO)
+      throws EshopException {
     isEmailValid(registerDTO.email());
     isPasswordValid(registerDTO.password());
     isPhoneValid(registerDTO.phone());
@@ -67,7 +75,10 @@ public class UserService {
     return UserMapper.toCustomerDTO(user);
   }
 
-  public UserDTO updateUser(UserDTO userDTO) throws EshopException {return null;}
+  public UserDTO updateUser(UserDTO userDTO) throws EshopException {
+    validateAccess();
+    return null;
+  }
 
   private User findUserById(Integer id) {
     return userRepository

@@ -20,10 +20,10 @@ public class CartController {
     this.service = service;
   }
 
-  @GetMapping("/{customerId}/{cartId}")
+  @GetMapping("/{userId}/{cartId}")
   public ResponseEntity<CartDTO> showCart(
-      @PathVariable Integer customerId, @PathVariable Integer cartId) {
-    CartDTO cart = service.showCart(cartId, customerId);
+      @PathVariable Integer userId, @PathVariable Integer cartId) {
+    CartDTO cart = service.showCart(cartId, userId);
     return ResponseEntity.ok(cart);
   }
 
@@ -54,10 +54,10 @@ public class CartController {
     return ResponseEntity.ok(cart);
   }
 
-  @PatchMapping("/{customerId}/{cartId}/recalculate")
+  @PatchMapping("/{userId}/{cartId}/recalculate")
   public ResponseEntity<CartDTO> recalculate(
-      @PathVariable Integer customerId, @PathVariable Integer cartId) {
-    CartDTO cart = service.updateCartWithOrWithoutDiscount(customerId, cartId);
+      @PathVariable Integer userId, @PathVariable Integer cartId) {
+    CartDTO cart = service.updateCartWithOrWithoutDiscount(userId, cartId);
     return ResponseEntity.ok(cart);
   }
 

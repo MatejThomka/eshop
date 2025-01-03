@@ -5,14 +5,21 @@ import com.mth.eshop.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.rememberme.InMemoryTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -24,49 +31,69 @@ public class SecurityConfig {
   }
 
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+  public AuthenticationManager authenticationManager(
+      AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    return authenticationConfiguration.getAuthenticationManager();
+  }
+
+  @Bean
+  public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authManager)
+      throws Exception {
+    CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter();
+    customAuthenticationFilter.setAuthenticationManager(authManager);
+    customAuthenticationFilter.setFilterProcessesUrl("/user/login");
+
     http.csrf(AbstractHttpConfigurer::disable)
+        .sessionManagement(
+            session ->
+                session
+                    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                    .sessionFixation()
+                    .migrateSession()
+                    .maximumSessions(1)
+                    .maxSessionsPreventsLogin(true)
+                    .expiredSessionStrategy(
+                        sessionInformationExpiredEvent -> {
+                          sessionInformationExpiredEvent
+                              .getResponse()
+                              .sendError(HttpStatus.UNAUTHORIZED.value(), "Session expired");
+                        })
+                    .expiredUrl("/user/login"))
+        .addFilterBefore(new CookieLoggingFilter(), CustomAuthenticationFilter.class)
         .authorizeHttpRequests(
             authorize ->
                 authorize
                     .requestMatchers(
-                        "/**",
+                        "/",
+                        "/{userId}/{cartId}",
+                        "/user/login",
+                        "/user/register/{customerId}/{cartId}",
                         "/cart/**",
                         "/coupon",
-                        "/item",
-                        "/item/review/add-or-update",
-                        "/user/login",
-                        "/user/register")
+                        "/coupon/{id}",
+                        "/item/{id}",
+                        "/item/{id}/review/add-or-update")
                     .permitAll()
-                    .requestMatchers("/user/**")
-                    .hasRole("CUSTOMER")
-                    .requestMatchers("/coupon/**", "/item/add-or-update", "/item/delete")
+                    .requestMatchers(
+                        "/user/details", "/user/update", "/user/update", "/user/logout")
+                    .hasAnyRole("USER", "ADMIN")
+                    .requestMatchers(
+                        "/coupon/add",
+                        "/coupon/delete/{id}",
+                        "/item/add-or-update",
+                        "/item/delete/{id}")
                     .hasRole("ADMIN")
                     .anyRequest()
                     .authenticated())
-        .formLogin(
-            login ->
-                login
-                    .loginProcessingUrl("/user/login")
-                    .successHandler(
-                        (request, response, authentication) -> {
-                          response.setContentType("application/json");
-                          response.setStatus(HttpStatus.OK.value());
-                          response
-                              .getWriter()
-                              .write(
-                                  "{\"status\": \"success\", \"message\": \"Login successful\"}");
-                          response.getWriter().flush();
-                        })
-                    .failureHandler(
-                        (request, response, exception) -> {
-                          response.setContentType("application/json");
-                          response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                          response
-                              .getWriter()
-                              .write("{\"status\": \"error\", \"message\": \"Login failed\"}");
-                          response.getWriter().flush();
-                        }))
+        .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(new SecurityContextPersistenceFilter(), CustomAuthenticationFilter.class)
+        .rememberMe(
+            rememberMe ->
+                rememberMe
+                    .tokenValiditySeconds(7 * 24 * 60 * 60)
+                    .rememberMeParameter("stayLoggedIn")
+                    .key("mThEshopKey")
+                    .tokenRepository(persistentTokenRepository()))
         .logout(
             logout ->
                 logout
@@ -80,8 +107,11 @@ public class SecurityConfig {
                               .write(
                                   "{\"status\": \"success\", \"message\": \"Logout successful\"}");
                           response.getWriter().flush();
-                        }))
-        .sessionManagement(session -> session.maximumSessions(1).maxSessionsPreventsLogin(false))
+                        })
+                    .invalidateHttpSession(true)
+                    .clearAuthentication(true)
+                    .deleteCookies("JSESSIONID", "remember-me")
+                    .permitAll())
         .httpBasic(Customizer.withDefaults());
 
     return http.build();
@@ -90,5 +120,10 @@ public class SecurityConfig {
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder(BCryptPasswordEncoder.BCryptVersion.$2A);
+  }
+
+  @Bean
+  public PersistentTokenRepository persistentTokenRepository() {
+    return new InMemoryTokenRepositoryImpl();
   }
 }

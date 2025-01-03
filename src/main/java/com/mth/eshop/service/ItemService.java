@@ -1,5 +1,7 @@
 package com.mth.eshop.service;
 
+import static com.mth.eshop.util.GlobalHelper.validateAccess;
+import static com.mth.eshop.util.GlobalHelper.validateAccessForAdmin;
 import static com.mth.eshop.util.ItemHelper.*;
 
 import com.mth.eshop.exception.EshopException;
@@ -47,6 +49,7 @@ public class ItemService {
   }
 
   public ItemDTO createOrUpdateItem(Item item) throws EshopException {
+    validateAccessForAdmin();
     Optional<Item> itemOptional = itemRepository.findById(item.getId());
     if (itemOptional.isPresent()) {
       Item existingItem = itemOptional.get();
@@ -60,6 +63,7 @@ public class ItemService {
 
   @Transactional
   public ItemDTO removeItem(String id) throws EshopException {
+    validateAccessForAdmin();
     Item item = findItem(id);
 
     List<CartItem> cartItems = cartItemRepository.findAllById(id);

@@ -18,7 +18,6 @@ public class SecurityUtil {
    */
   public static String getCurrentUserEmail() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    System.out.println("Authentication details: " + authentication);
     if (authentication == null || !authentication.isAuthenticated()) {
       throw new UserException("User not logged in", HttpStatus.UNAUTHORIZED);
     }
@@ -33,7 +32,6 @@ public class SecurityUtil {
    */
   public static boolean hasRole(String... roles) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    System.out.println("Authentication details: " + authentication);
     if (authentication == null || !authentication.isAuthenticated()) {
       return false;
     }

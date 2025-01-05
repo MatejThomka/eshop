@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import static com.mth.eshop.util.GlobalHelper.validateAccess;
 import static com.mth.eshop.util.SecurityUtil.getCurrentUserEmail;
-import static com.mth.eshop.util.SecurityUtil.hasRole;
 import static com.mth.eshop.util.UserHelper.*;
 
 @Service
@@ -38,7 +37,6 @@ public class UserService {
 
   public UserDTO getUserDetails() throws EshopException {
     String email = getCurrentUserEmail();
-    validateAccess();
 
     User user = findUserByEmail(email);
 
@@ -65,14 +63,6 @@ public class UserService {
     User savedUser = userRepository.save(registeringUser);
 
     return UserMapper.toCustomerDTO(savedUser);
-  }
-
-  public UserDTO loginUser(LoginDTO loginDTO) throws EshopException {
-    User user = findUserByEmail(loginDTO.email());
-    if (!passwordEncoder.matches(loginDTO.password(), user.getPassword()))
-      throw new UserException("Incorrect credentials!", HttpStatus.BAD_REQUEST);
-
-    return UserMapper.toCustomerDTO(user);
   }
 
   public UserDTO updateUser(UserDTO userDTO) throws EshopException {

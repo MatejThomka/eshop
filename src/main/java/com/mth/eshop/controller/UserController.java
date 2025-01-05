@@ -35,17 +35,6 @@ public class UserController {
     return ResponseEntity.status(HttpStatus.CREATED).body(user);
   }
 
-  @PostMapping("/login")
-  public ResponseEntity<UserDTO> loginUser(@Valid @RequestBody LoginDTO loginDTO) {
-    UserDTO user = userService.loginUser(loginDTO);
-    return ResponseEntity.ok(user);
-  }
-
-  @PostMapping("/logout")
-  public ResponseEntity<String> logoutUser() {
-    return ResponseEntity.ok("Logout successful");
-  }
-
   @PatchMapping("/update")
   public ResponseEntity<UserDTO> updateUser(@Valid @RequestBody UserDTO userDTO) {
     UserDTO updatedUser = userService.updateUser(userDTO);

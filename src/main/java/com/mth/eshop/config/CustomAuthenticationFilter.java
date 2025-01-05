@@ -13,12 +13,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 
 public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
+  private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
-  @Override
+    @Override
   public Authentication attemptAuthentication(
       HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
     try {
@@ -43,8 +46,10 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
       FilterChain chain,
       Authentication authResult)
       throws IOException {
-    authResult.getAuthorities().forEach(System.out::println);
+
     SecurityContextHolder.getContext().setAuthentication(authResult);
+    securityContextRepository.saveContext(SecurityContextHolder.getContext(), request, response);
+
     response.setContentType("application/json");
     response.setStatus(HttpStatus.OK.value());
     response.getWriter().write("{\"status\": \"success\", \"message\": \"Login successful\"}");

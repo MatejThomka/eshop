@@ -32,6 +32,12 @@ public class EshopException extends RuntimeException {
     Map<String, Object> properties = new HashMap<>();
 
     switch (httpStatus) {
+        case UNAUTHORIZED -> {
+            properties.put("errorCode", "ESHOP-401");
+            properties.put("errorType", "Unauthorized");
+            properties.put("suggestion", "Please log in to access this resource.");
+            properties.put("currentUser", getCurrentUserInfo());
+        }
       case FORBIDDEN -> {
         properties.put("errorCode", "ESHOP-403");
         properties.put("errorType", "Access denied");

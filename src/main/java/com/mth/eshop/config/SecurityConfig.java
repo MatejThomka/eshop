@@ -19,7 +19,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.InMemoryTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
-import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -44,6 +43,7 @@ public class SecurityConfig {
     customAuthenticationFilter.setFilterProcessesUrl("/user/login");
 
     http.csrf(AbstractHttpConfigurer::disable)
+        .anonymous(AbstractHttpConfigurer::disable)
         .sessionManagement(
             session ->
                 session
@@ -59,7 +59,6 @@ public class SecurityConfig {
                               .sendError(HttpStatus.UNAUTHORIZED.value(), "Session expired");
                         })
                     .expiredUrl("/user/login"))
-        .addFilterBefore(new CookieLoggingFilter(), CustomAuthenticationFilter.class)
         .authorizeHttpRequests(
             authorize ->
                 authorize
@@ -86,7 +85,6 @@ public class SecurityConfig {
                     .anyRequest()
                     .authenticated())
         .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(new SecurityContextPersistenceFilter(), CustomAuthenticationFilter.class)
         .rememberMe(
             rememberMe ->
                 rememberMe

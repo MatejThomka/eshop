@@ -3,10 +3,9 @@ package com.mth.eshop.util;
 import com.mth.eshop.model.Cart;
 import com.mth.eshop.model.CartItem;
 import com.mth.eshop.model.Item;
-
 import java.util.ArrayList;
 
-public class CartUtils {
+public class CartHelper {
 
   public static void updateCartTotals(Cart cart) {
     int totalQuantity = cart.getCartItem().stream().mapToInt(CartItem::getQuantity).sum();

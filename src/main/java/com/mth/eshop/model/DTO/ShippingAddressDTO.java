@@ -7,4 +7,4 @@ public record ShippingAddressDTO(
     String city,
     Integer zip,
     String country,
-    CustomerDTO customer) {}
+    UserDTO customer) {}

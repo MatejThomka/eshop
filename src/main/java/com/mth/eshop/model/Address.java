@@ -21,5 +21,5 @@ public class Address {
   String city;
   Integer zip;
   String country;
-  @ManyToOne Customer customer;
+  @ManyToOne User user;
 }

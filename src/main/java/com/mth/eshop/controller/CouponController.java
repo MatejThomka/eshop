@@ -33,7 +33,7 @@ public class CouponController {
   }
 
   @PostMapping("/add")
-  public ResponseEntity<CouponDTO> addCoupon(@Valid @RequestBody Coupon coupon) {
+  public ResponseEntity<?> addCoupon(@Valid @RequestBody Coupon coupon) {
     CouponDTO addedCoupon = service.createCoupon(coupon);
 
     URI location =

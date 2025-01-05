@@ -18,5 +18,5 @@ public class ShippingAddress {
   String city;
   Integer zip;
   String country;
-  @ManyToOne Customer customer;
+  @ManyToOne User user;
 }

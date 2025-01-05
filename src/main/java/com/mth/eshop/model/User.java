@@ -12,7 +12,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Setter
 @Getter
-public class Customer {
+public class User {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   Integer id;
@@ -21,6 +21,8 @@ public class Customer {
   String lastname;
   String email;
   String password;
+  String phone;
+  Role role;
   boolean isTemporary;
   @OneToMany List<Address> address;
   @OneToMany List<ShippingAddress> shippingAddress;

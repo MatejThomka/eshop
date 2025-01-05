@@ -1,14 +1,14 @@
 package com.mth.eshop.model.mapper;
 
-import com.mth.eshop.model.DTO.CustomerDTO;
 import com.mth.eshop.model.DTO.ShippingAddressDTO;
+import com.mth.eshop.model.DTO.UserDTO;
 import com.mth.eshop.model.ShippingAddress;
 
 public class ShippingAddressMapper {
   public static ShippingAddressDTO toShippingAddressDTO(ShippingAddress shippingAddress) {
-    CustomerDTO customer =
-        shippingAddress.getCustomer() != null
-            ? CustomerMapper.toCustomerDTO(shippingAddress.getCustomer())
+    UserDTO customer =
+        shippingAddress.getUser() != null
+            ? UserMapper.toCustomerDTO(shippingAddress.getUser())
             : null;
 
     return new ShippingAddressDTO(

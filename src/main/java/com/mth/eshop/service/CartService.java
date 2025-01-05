@@ -1,6 +1,6 @@
 package com.mth.eshop.service;
 
-import static com.mth.eshop.util.CartUtils.*;
+import static com.mth.eshop.util.CartHelper.*;
 
 import com.mth.eshop.exception.CartException;
 import com.mth.eshop.exception.CouponException;
@@ -20,30 +20,31 @@ public class CartService {
   private final CartRepository cartRepository;
   private final ItemRepository itemRepository;
   private final CartItemRepository cartItemRepository;
-  private final CustomerRepository customerRepository;
+  private final UserRepository userRepository;
   private final CouponRepository couponRepository;
 
   public CartService(
       CartRepository cartRepository,
       ItemRepository itemRepository,
       CartItemRepository cartItemRepository,
-      CustomerRepository customerRepository,
+      UserRepository userRepository,
       CouponRepository couponRepository) {
     this.cartRepository = cartRepository;
     this.itemRepository = itemRepository;
     this.cartItemRepository = cartItemRepository;
-    this.customerRepository = customerRepository;
+    this.userRepository = userRepository;
     this.couponRepository = couponRepository;
   }
 
   @Transactional
   public CartDTO createCart() {
-    Customer temporaryCustomer = new Customer();
-    temporaryCustomer.setTemporary(true);
-    customerRepository.save(temporaryCustomer);
+    User temporaryUser = new User();
+    temporaryUser.setTemporary(true);
+    temporaryUser.setRole(Role.USER);
+    userRepository.save(temporaryUser);
 
     Cart cart = new Cart();
-    cart.setCustomer(temporaryCustomer);
+    cart.setUser(temporaryUser);
     ensureCartItemList(cart);
     cart.setQuantity(0);
     cart.setFinalPrice(0.0);
@@ -60,9 +61,8 @@ public class CartService {
   }
 
   @Transactional
-  public CartDTO addToCart(Integer customerId, Integer cartId, String itemId)
-      throws EshopException {
-    Cart cart = findCart(cartId, customerId);
+  public CartDTO addToCart(Integer userId, Integer cartId, String itemId) throws EshopException {
+    Cart cart = findCart(cartId, userId);
     ensureCartItemList(cart);
     Item item = findItem(itemId);
 
@@ -90,9 +90,9 @@ public class CartService {
   }
 
   @Transactional
-  public CartDTO removeItemFromCart(Integer customerId, Integer cartId, String itemId)
+  public CartDTO removeItemFromCart(Integer userId, Integer cartId, String itemId)
       throws EshopException {
-    Cart cart = findCart(cartId, customerId);
+    Cart cart = findCart(cartId, userId);
     ensureCartItemList(cart);
     CartItem cartItem = findCartItem(itemId, cart.getId());
     Item item = findItem(itemId);
@@ -112,9 +112,9 @@ public class CartService {
   }
 
   @Transactional
-  public CartDTO updateCartWithOrWithoutDiscount(Integer customerId, Integer cartId)
+  public CartDTO updateCartWithOrWithoutDiscount(Integer userId, Integer cartId)
       throws EshopException {
-    Cart cart = findCart(cartId, customerId);
+    Cart cart = findCart(cartId, userId);
 
     if (hasCoupon(cart)) {
       applyDiscountAndUpdateCart(cart);
@@ -128,9 +128,9 @@ public class CartService {
   }
 
   @Transactional
-  public CartDTO addDiscountCoupon(Integer customerId, Integer cartId, String couponId)
+  public CartDTO addDiscountCoupon(Integer userId, Integer cartId, String couponId)
       throws EshopException {
-    Cart cart = findCart(cartId, customerId);
+    Cart cart = findCart(cartId, userId);
     Coupon newCoupon = findCoupon(couponId);
     Coupon oldCoupon = cart.getCoupon();
 
@@ -155,8 +155,8 @@ public class CartService {
   }
 
   @Transactional
-  public CartDTO removeDiscountCoupon(Integer customerId, Integer cartId) throws EshopException {
-    Cart cart = findCart(cartId, customerId);
+  public CartDTO removeDiscountCoupon(Integer userId, Integer cartId) throws EshopException {
+    Cart cart = findCart(cartId, userId);
     Coupon coupon = cart.getCoupon();
     if (coupon == null) {
       throw new CouponException("No coupon found in the cart to remove!", HttpStatus.NOT_FOUND);
@@ -173,13 +173,13 @@ public class CartService {
   }
 
   @Transactional(readOnly = true)
-  protected Cart findCart(Integer cartId, Integer customerId) throws EshopException {
+  protected Cart findCart(Integer cartId, Integer userId) throws EshopException {
     return cartRepository
-        .findCartByIdAndCustomer_Id(cartId, customerId)
+        .findCartByIdAndUser_Id(cartId, userId)
         .orElseThrow(
             () ->
                 new CartException(
-                    "Cart ID: " + cartId + " with customer ID: " + customerId + " doesn't exist!",
+                    "Cart ID: " + cartId + " with customer ID: " + userId + " doesn't exist!",
                     HttpStatus.NOT_FOUND));
   }
 

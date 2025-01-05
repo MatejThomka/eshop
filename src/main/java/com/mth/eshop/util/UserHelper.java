@@ -24,8 +24,7 @@ public class UserHelper {
   }
 
   public static void isIdValid(int id) throws EshopException {
-    if (id < 0)
-      throw new UserException("Customer ID cannot be negative!", HttpStatus.BAD_REQUEST);
+    if (id < 0) throw new UserException("Customer ID cannot be negative!", HttpStatus.BAD_REQUEST);
   }
 
   public static void isPasswordMatch(String password, String confirmPassword) {

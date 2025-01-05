@@ -1,12 +1,11 @@
 package com.mth.eshop.util;
 
 import com.mth.eshop.exception.UserException;
+import java.util.Arrays;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.Arrays;
 
 public class SecurityUtil {
 

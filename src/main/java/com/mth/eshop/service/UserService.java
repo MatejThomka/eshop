@@ -1,23 +1,22 @@
 package com.mth.eshop.service;
 
+import static com.mth.eshop.util.GlobalHelper.validateAccess;
+import static com.mth.eshop.util.SecurityUtil.getCurrentUserEmail;
+import static com.mth.eshop.util.UserHelper.*;
+
 import com.mth.eshop.exception.CartException;
-import com.mth.eshop.exception.UserException;
 import com.mth.eshop.exception.EshopException;
+import com.mth.eshop.exception.UserException;
 import com.mth.eshop.model.Cart;
-import com.mth.eshop.model.DTO.LoginDTO;
-import com.mth.eshop.model.User;
-import com.mth.eshop.model.DTO.UserDTO;
 import com.mth.eshop.model.DTO.RegisterDTO;
+import com.mth.eshop.model.DTO.UserDTO;
+import com.mth.eshop.model.User;
 import com.mth.eshop.model.mapper.UserMapper;
 import com.mth.eshop.repository.CartRepository;
 import com.mth.eshop.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import static com.mth.eshop.util.GlobalHelper.validateAccess;
-import static com.mth.eshop.util.SecurityUtil.getCurrentUserEmail;
-import static com.mth.eshop.util.UserHelper.*;
 
 @Service
 public class UserService {

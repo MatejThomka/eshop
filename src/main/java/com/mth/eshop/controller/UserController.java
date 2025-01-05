@@ -1,6 +1,5 @@
 package com.mth.eshop.controller;
 
-import com.mth.eshop.model.DTO.LoginDTO;
 import com.mth.eshop.model.DTO.RegisterDTO;
 import com.mth.eshop.model.DTO.UserDTO;
 import com.mth.eshop.service.UserService;

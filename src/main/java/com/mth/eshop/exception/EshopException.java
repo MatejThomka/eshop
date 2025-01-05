@@ -32,12 +32,12 @@ public class EshopException extends RuntimeException {
     Map<String, Object> properties = new HashMap<>();
 
     switch (httpStatus) {
-        case UNAUTHORIZED -> {
-            properties.put("errorCode", "ESHOP-401");
-            properties.put("errorType", "Unauthorized");
-            properties.put("suggestion", "Please log in to access this resource.");
-            properties.put("currentUser", getCurrentUserInfo());
-        }
+      case UNAUTHORIZED -> {
+        properties.put("errorCode", "ESHOP-401");
+        properties.put("errorType", "Unauthorized");
+        properties.put("suggestion", "Please log in to access this resource.");
+        properties.put("currentUser", getCurrentUserInfo());
+      }
       case FORBIDDEN -> {
         properties.put("errorCode", "ESHOP-403");
         properties.put("errorType", "Access denied");
@@ -69,7 +69,9 @@ public class EshopException extends RuntimeException {
 
   private String getCurrentUserInfo() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication != null && authentication.getPrincipal() instanceof org.springframework.security.core.userdetails.User user) {
+    if (authentication != null
+        && authentication.getPrincipal()
+            instanceof org.springframework.security.core.userdetails.User user) {
       return String.format("User: %s, Role: %s", user.getUsername(), user.getAuthorities());
     }
     return "Anonymous";

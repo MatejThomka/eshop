@@ -19,9 +19,10 @@ import org.springframework.security.web.context.SecurityContextRepository;
 public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
-  private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+  private final SecurityContextRepository securityContextRepository =
+      new HttpSessionSecurityContextRepository();
 
-    @Override
+  @Override
   public Authentication attemptAuthentication(
       HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
     try {

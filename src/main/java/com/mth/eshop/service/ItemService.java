@@ -1,6 +1,5 @@
 package com.mth.eshop.service;
 
-import static com.mth.eshop.util.GlobalHelper.validateAccess;
 import static com.mth.eshop.util.GlobalHelper.validateAccessForAdmin;
 import static com.mth.eshop.util.ItemHelper.*;
 

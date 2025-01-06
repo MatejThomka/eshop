@@ -1,7 +1,6 @@
 package com.mth.eshop.controller;
 
-import com.mth.eshop.model.DTO.RegisterDTO;
-import com.mth.eshop.model.DTO.UserDTO;
+import com.mth.eshop.model.DTO.*;
 import com.mth.eshop.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -35,8 +34,27 @@ public class UserController {
   }
 
   @PatchMapping("/update")
-  public ResponseEntity<UserDTO> updateUser(@Valid @RequestBody UserDTO userDTO) {
+  public ResponseEntity<UserDTO> updateUser(@Valid @RequestBody UpdateUserRequest userDTO) {
     UserDTO updatedUser = userService.updateUser(userDTO);
     return ResponseEntity.ok(updatedUser);
+  }
+
+  @PatchMapping("/change-password")
+  public ResponseEntity<String> changePassword(
+      @Valid @RequestBody PasswordChangeRequest passwordChangeRequest) {
+    userService.changePassword(passwordChangeRequest);
+    return ResponseEntity.ok("Password changed successfully");
+  }
+
+  @PatchMapping("/change-email")
+  public ResponseEntity<String> changeEmail(@Valid @RequestBody EmailChangeRequest emailChangeRequest) {
+    userService.changeEmail(emailChangeRequest);
+    return ResponseEntity.ok("Email changed successfully, please login again");
+  }
+
+  @DeleteMapping("/delete")
+  public ResponseEntity<String> deleteUser() {
+    userService.deleteUser();
+    return ResponseEntity.ok("User deleted successfully");
   }
 }

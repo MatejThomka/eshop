@@ -24,7 +24,7 @@ public class User {
   String phone;
   Role role;
   boolean isTemporary;
-  @OneToMany List<Address> address;
-  @OneToMany List<ShippingAddress> shippingAddress;
+  @OneToOne Address address;
+  @OneToOne ShippingAddress shippingAddress;
   @OneToOne Cart cart;
 }

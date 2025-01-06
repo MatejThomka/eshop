@@ -31,4 +31,9 @@ public class UserHelper {
     if (!password.equals(confirmPassword))
       throw new UserException("Incorrect credentials!", HttpStatus.BAD_REQUEST);
   }
+
+  public static void isEmailMatch(String email, String confirmEmail) {
+    if (!email.equals(confirmEmail))
+      throw new UserException("Email is incorrect or not match!", HttpStatus.BAD_REQUEST);
+  }
 }

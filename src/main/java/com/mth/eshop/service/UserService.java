@@ -4,16 +4,18 @@ import static com.mth.eshop.util.GlobalHelper.validateAccess;
 import static com.mth.eshop.util.SecurityUtil.getCurrentUserEmail;
 import static com.mth.eshop.util.UserHelper.*;
 
+import com.mth.eshop.config.CustomAuthenticationFilter;
 import com.mth.eshop.exception.CartException;
 import com.mth.eshop.exception.EshopException;
 import com.mth.eshop.exception.UserException;
 import com.mth.eshop.model.Cart;
-import com.mth.eshop.model.DTO.RegisterDTO;
-import com.mth.eshop.model.DTO.UserDTO;
+import com.mth.eshop.model.DTO.*;
 import com.mth.eshop.model.User;
 import com.mth.eshop.model.mapper.UserMapper;
 import com.mth.eshop.repository.CartRepository;
 import com.mth.eshop.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,17 +23,20 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
 
-  UserRepository userRepository;
-  CartRepository cartRepository;
-  PasswordEncoder passwordEncoder;
+  private final UserRepository userRepository;
+  private final CartRepository cartRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final CustomAuthenticationFilter customAuthenticationFilter;
 
   public UserService(
       UserRepository userRepository,
       CartRepository cartRepository,
-      PasswordEncoder passwordEncoder) {
+      PasswordEncoder passwordEncoder,
+      CustomAuthenticationFilter customAuthenticationFilter) {
     this.userRepository = userRepository;
     this.cartRepository = cartRepository;
     this.passwordEncoder = passwordEncoder;
+    this.customAuthenticationFilter = customAuthenticationFilter;
   }
 
   public UserDTO getUserDetails() throws EshopException {
@@ -64,21 +69,72 @@ public class UserService {
     return UserMapper.toCustomerDTO(savedUser);
   }
 
-  public UserDTO updateUser(UserDTO userDTO) throws EshopException {
+  public UserDTO updateUser(UpdateUserRequest userRequestDTO) throws EshopException {
     validateAccess();
-    return null;
+    User user = findUserByEmail(getCurrentUserEmail());
+
+    if (userRequestDTO.firstname() != null) user.setFirstname(userRequestDTO.firstname());
+    if (userRequestDTO.lastname() != null) user.setLastname(userRequestDTO.lastname());
+    if (userRequestDTO.phone() != null) user.setPhone(userRequestDTO.phone());
+    if (userRequestDTO.address() != null) user.setAddress(userRequestDTO.address());
+    if (userRequestDTO.shippingAddress() != null)
+      user.setShippingAddress(userRequestDTO.shippingAddress());
+
+    return UserMapper.toCustomerDTO(userRepository.save(user));
+  }
+
+  public void changePassword(PasswordChangeRequest passwordChangeRequest) throws EshopException {
+    validateAccess();
+    User user = findUserByEmail(getCurrentUserEmail());
+
+    if (!passwordEncoder.matches(passwordChangeRequest.oldPassword(), user.getPassword())) {
+      throw new UserException("Invalid old password", HttpStatus.BAD_REQUEST);
+    }
+
+    isPasswordValid(passwordChangeRequest.newPassword());
+    isPasswordMatch(passwordChangeRequest.newPassword(), passwordChangeRequest.confirmPassword());
+
+    user.setPassword(passwordEncoder.encode(passwordChangeRequest.newPassword()));
+    userRepository.save(user);
+  }
+
+  public void changeEmail(
+      EmailChangeRequest emailChangeRequest,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws EshopException {
+    validateAccess();
+
+    isEmailMatch(getCurrentUserEmail(), emailChangeRequest.oldEmail());
+    isEmailValid(emailChangeRequest.newEmail());
+    isEmailMatch(emailChangeRequest.newEmail(), emailChangeRequest.confirmEmail());
+
+    User user = findUserByEmail(getCurrentUserEmail());
+    user.setEmail(emailChangeRequest.newEmail());
+    userRepository.save(user);
+
+    customAuthenticationFilter.updateSecurityContext(
+        emailChangeRequest.newEmail(), request, response);
+  }
+
+  public void deleteUser() throws EshopException {
+    validateAccess();
+
+    User user = findUserByEmail(getCurrentUserEmail());
+
+    userRepository.delete(user);
   }
 
   private User findUserById(Integer id) {
     return userRepository
         .findById(id)
-        .orElseThrow(() -> new UserException("Customer not found", HttpStatus.NOT_FOUND));
+        .orElseThrow(() -> new UserException("User not found", HttpStatus.NOT_FOUND));
   }
 
   private User findUserByEmail(String email) {
     return userRepository
         .findByEmail(email)
-        .orElseThrow(() -> new UserException("Customer not found", HttpStatus.NOT_FOUND));
+        .orElseThrow(() -> new UserException("User not found", HttpStatus.NOT_FOUND));
   }
 
   private Cart findCart(Integer id) {

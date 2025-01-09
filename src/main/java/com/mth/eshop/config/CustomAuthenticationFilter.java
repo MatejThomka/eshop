@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -49,6 +50,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
       throws IOException {
 
     SecurityContextHolder.getContext().setAuthentication(authResult);
+
     securityContextRepository.saveContext(SecurityContextHolder.getContext(), request, response);
 
     response.setContentType("application/json");
@@ -65,5 +67,20 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     response.setStatus(HttpStatus.UNAUTHORIZED.value());
     response.getWriter().write("{\"status\": \"error\", \"message\": \"Login failed\"}");
     response.getWriter().flush();
+  }
+
+  public void updateSecurityContext(
+      String newEmail, HttpServletRequest request, HttpServletResponse response) {
+    Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
+
+    Authentication updatedAuth =
+        new UsernamePasswordAuthenticationToken(
+            newEmail, currentAuth.getCredentials(), currentAuth.getAuthorities());
+
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(updatedAuth);
+    SecurityContextHolder.setContext(context);
+
+    securityContextRepository.saveContext(context, request, response);
   }
 }

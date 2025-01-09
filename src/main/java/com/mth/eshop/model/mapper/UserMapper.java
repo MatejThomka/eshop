@@ -6,13 +6,13 @@ import java.util.List;
 
 public class UserMapper {
   public static UserDTO toCustomerDTO(User user) {
-    List<AddressDTO> addresses =
-        user.getAddress().stream().map(AddressMapper::toAddressDTO).toList();
-    List<ShippingAddressDTO> shippingAddresses =
-        user.getShippingAddress().stream()
-            .map(ShippingAddressMapper::toShippingAddressDTO)
-            .toList();
     CartDTO cart = user.getCart() != null ? CartMapper.toCartDTO(user.getCart()) : null;
+    AddressDTO address =
+        user.getAddress() != null ? AddressMapper.toAddressDTO(user.getAddress()) : null;
+    ShippingAddressDTO shippingAddress =
+        user.getShippingAddress() != null
+            ? ShippingAddressMapper.toShippingAddressDTO(user.getShippingAddress())
+            : null;
 
     return new UserDTO(
         user.getId(),
@@ -21,8 +21,8 @@ public class UserMapper {
         user.getEmail(),
         user.getPhone(),
         user.isTemporary(),
-        addresses,
-        shippingAddresses,
+        address,
+        shippingAddress,
         cart);
   }
 }

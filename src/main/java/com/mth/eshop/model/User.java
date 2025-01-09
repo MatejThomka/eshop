@@ -1,7 +1,6 @@
 package com.mth.eshop.model;
 
 import jakarta.persistence.*;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,7 @@ public class User {
   String phone;
   Role role;
   boolean isTemporary;
-  @OneToMany List<Address> address;
-  @OneToMany List<ShippingAddress> shippingAddress;
+  @OneToOne Address address;
+  @OneToOne ShippingAddress shippingAddress;
   @OneToOne Cart cart;
 }

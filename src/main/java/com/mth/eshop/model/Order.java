@@ -1,8 +1,10 @@
 package com.mth.eshop.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
 
 @Entity
 @RequiredArgsConstructor
@@ -10,11 +12,7 @@ import lombok.experimental.FieldDefaults;
 @Setter
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CartItem {
-  @Id String id;
-
-  String name;
-  Integer quantity;
-  Double price;
-  @ManyToOne Cart cart;
+public class Order {
+    @Id
+    Long id;
 }

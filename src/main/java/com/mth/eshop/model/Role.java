@@ -1,5 +1,6 @@
 package com.mth.eshop.model;
 
+
 public enum Role {
   ADMIN("ROLE_ADMIN"),
   USER("ROLE_USER");

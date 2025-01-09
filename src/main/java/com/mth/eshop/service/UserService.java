@@ -4,6 +4,7 @@ import static com.mth.eshop.util.GlobalHelper.validateAccess;
 import static com.mth.eshop.util.SecurityUtil.getCurrentUserEmail;
 import static com.mth.eshop.util.UserHelper.*;
 
+import com.mth.eshop.config.CustomAuthenticationFilter;
 import com.mth.eshop.exception.CartException;
 import com.mth.eshop.exception.EshopException;
 import com.mth.eshop.exception.UserException;
@@ -13,25 +14,29 @@ import com.mth.eshop.model.User;
 import com.mth.eshop.model.mapper.UserMapper;
 import com.mth.eshop.repository.CartRepository;
 import com.mth.eshop.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
 
-  UserRepository userRepository;
-  CartRepository cartRepository;
-  PasswordEncoder passwordEncoder;
+  private final UserRepository userRepository;
+  private final CartRepository cartRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final CustomAuthenticationFilter customAuthenticationFilter;
 
   public UserService(
       UserRepository userRepository,
       CartRepository cartRepository,
-      PasswordEncoder passwordEncoder) {
+      PasswordEncoder passwordEncoder,
+      CustomAuthenticationFilter customAuthenticationFilter) {
     this.userRepository = userRepository;
     this.cartRepository = cartRepository;
     this.passwordEncoder = passwordEncoder;
+    this.customAuthenticationFilter = customAuthenticationFilter;
   }
 
   public UserDTO getUserDetails() throws EshopException {
@@ -93,7 +98,11 @@ public class UserService {
     userRepository.save(user);
   }
 
-  public void changeEmail(EmailChangeRequest emailChangeRequest) throws EshopException {
+  public void changeEmail(
+      EmailChangeRequest emailChangeRequest,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws EshopException {
     validateAccess();
 
     isEmailMatch(getCurrentUserEmail(), emailChangeRequest.oldEmail());
@@ -104,7 +113,8 @@ public class UserService {
     user.setEmail(emailChangeRequest.newEmail());
     userRepository.save(user);
 
-    SecurityContextHolder.clearContext();
+    customAuthenticationFilter.updateSecurityContext(
+        emailChangeRequest.newEmail(), request, response);
   }
 
   public void deleteUser() throws EshopException {

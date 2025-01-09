@@ -2,9 +2,6 @@ package com.mth.eshop.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mth.eshop.model.User;
-import com.mth.eshop.repository.UserRepository;
-import com.mth.eshop.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,8 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
@@ -26,7 +23,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
   private final SecurityContextRepository securityContextRepository =
       new HttpSessionSecurityContextRepository();
 
-    @Override
+  @Override
   public Authentication attemptAuthentication(
       HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
     try {
@@ -70,5 +67,20 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     response.setStatus(HttpStatus.UNAUTHORIZED.value());
     response.getWriter().write("{\"status\": \"error\", \"message\": \"Login failed\"}");
     response.getWriter().flush();
+  }
+
+  public void updateSecurityContext(
+      String newEmail, HttpServletRequest request, HttpServletResponse response) {
+    Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
+
+    Authentication updatedAuth =
+        new UsernamePasswordAuthenticationToken(
+            newEmail, currentAuth.getCredentials(), currentAuth.getAuthorities());
+
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(updatedAuth);
+    SecurityContextHolder.setContext(context);
+
+    securityContextRepository.saveContext(context, request, response);
   }
 }

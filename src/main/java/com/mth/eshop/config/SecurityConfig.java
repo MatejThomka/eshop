@@ -36,12 +36,16 @@ public class SecurityConfig {
   }
 
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authManager)
-      throws Exception {
+  public CustomAuthenticationFilter customAuthenticationFilter(AuthenticationManager authenticationManager) {
     CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter();
-    customAuthenticationFilter.setAuthenticationManager(authManager);
+    customAuthenticationFilter.setAuthenticationManager(authenticationManager);
     customAuthenticationFilter.setFilterProcessesUrl("/user/login");
+    return customAuthenticationFilter;
+  }
 
+  @Bean
+  public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager)
+      throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
         .anonymous(AbstractHttpConfigurer::disable)
         .sessionManagement(
@@ -84,7 +88,7 @@ public class SecurityConfig {
                     .hasRole("ADMIN")
                     .anyRequest()
                     .authenticated())
-        .addFilterBefore(customAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(customAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class)
         .rememberMe(
             rememberMe ->
                 rememberMe

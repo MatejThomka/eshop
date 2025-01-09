@@ -2,6 +2,8 @@ package com.mth.eshop.controller;
 
 import com.mth.eshop.model.DTO.*;
 import com.mth.eshop.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,8 +49,11 @@ public class UserController {
   }
 
   @PatchMapping("/change-email")
-  public ResponseEntity<String> changeEmail(@Valid @RequestBody EmailChangeRequest emailChangeRequest) {
-    userService.changeEmail(emailChangeRequest);
+  public ResponseEntity<String> changeEmail(
+      @Valid @RequestBody EmailChangeRequest emailChangeRequest,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+    userService.changeEmail(emailChangeRequest, request, response);
     return ResponseEntity.ok("Email changed successfully, please login again");
   }
 

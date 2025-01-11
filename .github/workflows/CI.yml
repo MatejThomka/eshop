@@ -28,14 +28,14 @@ jobs:
 
         - name: Run tests
           run: |
-            docker run -d --name eshop_test \
-            -e DATABASE_URL=${{ secrets.DB_URL }} \  
+            docker run -d --name eshop-test \
+            -e DATABASE_URL=${{ secrets.DB_URL }} \
             -e DATABASE_USERNAME=${{ secrets.DB_USERNAME }} \
             -e DATABASE_PASSWORD=${{ secrets.DB_PASSWORD }} \
             -e CART_URL=${{ secrets.CART_URL }} \
             -e COUPON_URL=${{ secrets.COUPON_URL }} \
             -e SPRING_PROFILES_ACTIVE=${{ vars.PROFILE }} \
-            eshop_test \
+            eshop-test \
             mvn test
             
         - name: Stop containers

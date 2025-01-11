@@ -35,8 +35,7 @@ jobs:
             -e CART_URL=${{ secrets.CART_URL }} \
             -e COUPON_URL=${{ secrets.COUPON_URL }} \
             -e SPRING_PROFILES_ACTIVE=${{ vars.PROFILE }} \
-            eshop-test \
-            mvn test
+            eshop-test mvn test
             
         - name: Stop containers
           run: |

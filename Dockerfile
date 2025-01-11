@@ -8,8 +8,6 @@ COPY src ./src
 
 RUN mvn clean package -DskipTests
 
-ENTRYPOINT ["mvn", "spring-boot:run"]
-
 # 2. Stage: build
 FROM dev AS build
 

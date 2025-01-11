@@ -20,6 +20,7 @@ services:
         - action: sync+restart
           path: src
           target: /app/src
+    entrypoint: ["mvn", "spring-boot:run"]
 
   db:
     image: mysql:8.0

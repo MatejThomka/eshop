@@ -15,9 +15,12 @@ jobs:
         - name: Checkout code
           uses: actions/checkout@v2
 
+        - name: Create network
+          run: docker network create eshop-network
+
         - name: Prepare MySQL service
           run: |
-            docker run -d --name mysql \
+            docker run -d --name mysql --network eshop-network \
             -e MYSQL_ROOT_PASSWORD=${{ secrets.DB_PASSWORD }} \
             -e MYSQL_DATABASE=${{ secrets.DB_NAME }} \
             -p 3306:3306 mysql:8.0
@@ -28,7 +31,7 @@ jobs:
 
         - name: Run tests
           run: |
-            docker run --name eshop-test --link mysql \
+            docker run --name eshop-test --network eshop-network \
             -e DATABASE_URL=${{ secrets.DB_URL }}${{ secrets.DB_NAME }} \
             -e DATABASE_USERNAME=${{ secrets.DB_USERNAME }} \
             -e DATABASE_PASSWORD=${{ secrets.DB_PASSWORD }} \

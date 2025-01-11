@@ -20,14 +20,10 @@ jobs:
 
         - name: Prepare MySQL service
           run: |
-            docker run -d --name mysql --network eshop-network \
+            docker run --name mysql --network eshop-network \
             -e MYSQL_ROOT_PASSWORD=${{ secrets.DB_PASSWORD }} \
             -e MYSQL_DATABASE=${{ secrets.DB_NAME }} \
-            -p 3307:3306 mysql:8.0 --bind-address=0.0.0.0
-
-        - name: Configure MySQL user
-          run: |
-            docker exec mysql mysql -hmysql -uroot -p${{ secrets.DB_PASSWORD }} -e "GRANT ALL PRIVILEGES ON *.* TO '${{ secrets.DB_USERNAME }}'@'%' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}'; FLUSH PRIVILEGES;"
+            -p 3307:3306 mysql:8.0
 
         - name: Build test image
           run: |

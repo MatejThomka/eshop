@@ -23,7 +23,7 @@ jobs:
             docker run -d --name mysql --network eshop-network \
             -e MYSQL_ROOT_PASSWORD=${{ secrets.DB_PASSWORD }} \
             -e MYSQL_DATABASE=${{ secrets.DB_NAME }} \
-            -p 3306:3306 mysql:8.0
+            -p 3306:3306 mysql:8.0 --bind-address=0.0.0.0
 
         - name: Build test image
           run: |

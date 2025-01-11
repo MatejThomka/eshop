@@ -40,12 +40,13 @@ jobs:
             -e SPRING_PROFILES_ACTIVE=${{ vars.PROFILE }} \
             eshop-test mvn test
             
-        - name: Stop containers
+        - name: Cleanup
+          if: always()
           run: |
-            docker stop mysql
-            docker stop eshop-test
-            docker rm mysql
-            docker rm eshop-test
+            docker stop mysql eshop-test || true
+            docker rm mysql eshop-test || true
+            docker network rm eshop-network || true
+            docker rmi eshop-test || true
 
     format-check:
         name: Format check

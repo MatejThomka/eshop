@@ -27,8 +27,7 @@ jobs:
 
         - name: Configure MySQL user
           run: |
-            docker exec mysql mysql -uroot -p${{ secrets.DB_PASSWORD }} -e "GRANT ALL PRIVILEGES ON *.* TO '${{ secrets.DB_USERNAME }}'@'%' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}'; FLUSH PRIVILEGES;"
-
+            docker exec mysql mysql -hmysql -uroot -p${{ secrets.DB_PASSWORD }} -e "GRANT ALL PRIVILEGES ON *.* TO '${{ secrets.DB_USERNAME }}'@'%' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}'; FLUSH PRIVILEGES;"
 
         - name: Build test image
           run: |

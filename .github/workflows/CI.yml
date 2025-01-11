@@ -1,27 +1,65 @@
 name: CI
 
 on:
+  push:
   pull_request:
     branches: [ "main", "dev" ]
 
 jobs:
-    build:
+    build-test:
+        name: Test
         runs-on: ubuntu-latest
+        environment: dev
 
         steps:
-        - uses: actions/checkout@v2
+        - name: Checkout code
+          uses: actions/checkout@v2
 
-        - name: Set up JDK 21
-          uses: actions/setup-java@v2
-          with:
-            distribution: 'adopt'
-            java-version: '21'
+        - name: Prepare MySQL service
+          run: |
+            docker run -d --name mysql \
+            -e MYSQL_ROOT_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -e MYSQL_DATABASE={{ secrets.DB_NAME }} \
+            -p 3306:3306 mysql:8.0
 
-        - name: Build with Maven
-          run: mvn -B package --file pom.xml
+        - name: Build test image
+          run: |
+            docker build --target=dev -t eshop-test .
 
         - name: Run tests
-          run: mvn test
+          run: |
+            docker run -d --name eshop-test \
+            -e DATABASE_URL=${{ secrets.DB_URL }} \  
+            -e DATABASE_USERNAME=${{ secrets.DB_USERNAME }} \
+            -e DATABASE_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -e CART_URL=${{ secrets.CART_URL }} \
+            -e COUPON_URL=${{ secrets.COUPON_URL }} \
+            -e SPRING_PROFILES_ACTIVE=${{ vars.PROFILE }} \
+            eshop-test \
+            mvn test
+            
+        - name: Stop containers
+          run: |
+            docker stop mysql
+            docker stop eshop-test
+            docker rm mysql
+            docker rm eshop-test
 
-        - name: Run the application
-          run: mvn spring-boot:run
+    format-check:
+        name: Format check
+        runs-on: ubuntu-latest
+        environment: dev
+
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+
+        - name: Check formating
+          run: |
+            docker run --rm \
+            -v ${{ github.workspace }}/src:/app/src \
+            -v ${{ github.workspace }}/pom.xml:/app/pom.xml \
+            -w /app \
+            maven:3.9-eclipse-temurin \
+            mvn spotless:check
+

@@ -7,12 +7,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Entity
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Setter
 @Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Coupon {
   @NotBlank(message = "Coupon ID cannot be blank")
   @Id

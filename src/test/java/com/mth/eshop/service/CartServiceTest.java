@@ -47,7 +47,6 @@ class CartServiceTest {
   void setUp() {
     MockitoAnnotations.openMocks(this);
 
-    // Vytvorenie spoločných objektov pre testy
     user = new User();
     user.setId(1);
     user.setTemporary(true);

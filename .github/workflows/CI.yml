@@ -25,6 +25,17 @@ jobs:
             -e MYSQL_DATABASE=${{ secrets.DB_NAME }} \
             -p 3306:3306 mysql:8.0
 
+        - name: Wait for MySQL
+          run: |
+            for i in {1..30}; do
+              if docker exec mysql mysqladmin ping -h"127.0.0.1" --silent; then
+                echo "MySQL is ready"
+                break
+              fi
+              echo "Waiting for MySQL..."
+              sleep 2
+            done
+
         - name: Test MySQL connection
           run: docker exec mysql mysql -u root -p${{ secrets.DB_PASSWORD }} -e "SHOW DATABASES;"
 

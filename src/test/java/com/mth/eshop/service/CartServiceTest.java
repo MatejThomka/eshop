@@ -8,7 +8,6 @@ import com.mth.eshop.exception.CouponException;
 import com.mth.eshop.exception.ItemException;
 import com.mth.eshop.model.*;
 import com.mth.eshop.model.DTO.CartDTO;
-import com.mth.eshop.model.mapper.CartMapper;
 import com.mth.eshop.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 class CartServiceTest {
@@ -40,32 +38,44 @@ class CartServiceTest {
   @InjectMocks
   private CartService cartService;
 
+  private User user;
+  private Cart cart;
+  private Item item;
+  private Coupon coupon;
+
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
+
+    // Vytvorenie spoločných objektov pre testy
+    user = new User();
+    user.setId(1);
+    user.setTemporary(true);
+    user.setRole(Role.USER);
+
+    cart = new Cart();
+    cart.setId(1);
+    cart.setUser(user);
+    cart.setCartItem(new ArrayList<>());
+    cart.setQuantity(0);
+    cart.setFinalPrice(0.0);
+
+    item = new Item();
+    item.setId("item1");
+    item.setName("Item 1");
+    item.setPrice(100.0);
+    item.setStockQuantity(10);
+
+    coupon = new Coupon();
+    coupon.setId("coupon1");
+    coupon.setCart(new ArrayList<>());
   }
 
   @Test
   void testCreateCart() {
     // Arrange
-    User temporaryUser = new User();
-    temporaryUser.setId(1);
-    temporaryUser.setTemporary(true);
-    temporaryUser.setRole(Role.USER);
-
-    Cart cart = new Cart();
-    cart.setId(1);
-    cart.setUser(temporaryUser);
-    cart.setQuantity(0);
-    cart.setFinalPrice(0.0);
-    cart.setCartItem(List.of());
-
-    when(userRepository.save(any(User.class))).thenReturn(temporaryUser);
-    when(cartRepository.save(any(Cart.class))).thenAnswer(invocation -> {
-      Cart c = invocation.getArgument(0);
-      c.setId(1);
-      return c;
-    });
+    when(userRepository.save(any(User.class))).thenReturn(user);
+    when(cartRepository.save(any(Cart.class))).thenReturn(cart);
 
     // Act
     CartDTO result = cartService.createCart();
@@ -80,14 +90,6 @@ class CartServiceTest {
   @Test
   void testShowCartSuccess() throws Exception {
     // Arrange
-    User user = new User();
-    user.setId(1);
-    Cart cart = new Cart();
-    cart.setId(1);
-    cart.setCartItem(List.of());
-    cart.setFinalPrice(0.0);
-    cart.setUser(user);
-
     when(cartRepository.findCartByIdAndUser_Id(1, 1)).thenReturn(Optional.of(cart));
 
     // Act
@@ -112,17 +114,6 @@ class CartServiceTest {
   @Test
   void testAddToCartSuccess() throws Exception {
     // Arrange
-    User user = new User();
-    user.setId(1);
-    Cart cart = new Cart();
-    cart.setId(1);
-    cart.setUser(user);
-    Item item = new Item();
-    item.setId("item1");
-    item.setName("Item 1");
-    item.setPrice(100.0);
-    item.setStockQuantity(10);
-
     when(cartRepository.findCartByIdAndUser_Id(1, 1)).thenReturn(Optional.of(cart));
     when(itemRepository.findById("item1")).thenReturn(Optional.of(item));
     when(cartItemRepository.findCartItemByIdAndCart_Id("item1", 1)).thenReturn(Optional.empty());
@@ -140,12 +131,7 @@ class CartServiceTest {
   @Test
   void testAddToCartItemSoldOut() {
     // Arrange
-    Cart cart = new Cart();
-    cart.setId(1);
-    Item item = new Item();
-    item.setId("item1");
     item.setStockQuantity(0);
-
     when(cartRepository.findCartByIdAndUser_Id(1, 1)).thenReturn(Optional.of(cart));
     when(itemRepository.findById("item1")).thenReturn(Optional.of(item));
 
@@ -158,18 +144,8 @@ class CartServiceTest {
   @Test
   void testRemoveDiscountCouponSuccess() throws Exception {
     // Arrange
-    User user = new User();
-    user.setId(1);
-    Cart cart = new Cart();
-    cart.setId(1);
-    cart.setCartItem(List.of());
-    cart.setUser(user);
-    Coupon coupon = new Coupon();
-    coupon.setId("coupon1");
-    coupon.setCart(new ArrayList<>());
     coupon.getCart().add(cart);
     cart.setCoupon(coupon);
-
     when(cartRepository.findCartByIdAndUser_Id(1, 1)).thenReturn(Optional.of(cart));
 
     // Act
@@ -185,9 +161,6 @@ class CartServiceTest {
   @Test
   void testRemoveDiscountCouponNotFound() {
     // Arrange
-    Cart cart = new Cart();
-    cart.setId(1);
-
     when(cartRepository.findCartByIdAndUser_Id(1, 1)).thenReturn(Optional.of(cart));
 
     // Act & Assert

@@ -158,9 +158,12 @@ class CartServiceTest {
   @Test
   void testRemoveDiscountCouponSuccess() throws Exception {
     // Arrange
+    User user = new User();
+    user.setId(1);
     Cart cart = new Cart();
     cart.setId(1);
     cart.setCartItem(List.of());
+    cart.setUser(user);
     Coupon coupon = new Coupon();
     coupon.setId("coupon1");
     coupon.setCart(new ArrayList<>());

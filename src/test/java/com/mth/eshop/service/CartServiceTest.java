@@ -75,7 +75,11 @@ class CartServiceTest {
   void testCreateCart() {
     // Arrange
     when(userRepository.save(any(User.class))).thenReturn(user);
-    when(cartRepository.save(any(Cart.class))).thenReturn(cart);
+    when(cartRepository.save(any(Cart.class))).thenAnswer(invocation -> {
+      Cart c = invocation.getArgument(0);
+      c.setId(1);
+      return c;
+    });
 
     // Act
     CartDTO result = cartService.createCart();

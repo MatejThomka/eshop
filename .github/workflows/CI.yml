@@ -25,6 +25,9 @@ jobs:
             -e MYSQL_DATABASE=${{ secrets.DB_NAME }} \
             -p 3306:3306 mysql:8.0
 
+        - name: Test MySQL connection
+          run: docker exec mysql mysql -u root -p${{ secrets.DB_PASSWORD }} -e "SHOW DATABASES;"
+
         - name: Build test image
           run: |
             docker build --target=dev -t eshop-test .
@@ -57,7 +60,7 @@ jobs:
         - name: Checkout code
           uses: actions/checkout@v2
 
-        - name: Check formating
+        - name: Check formatting
           run: |
             docker run --rm \
             -v ${{ github.workspace }}/src:/app/src \

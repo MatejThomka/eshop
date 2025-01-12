@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -79,10 +80,13 @@ class CartServiceTest {
   @Test
   void testShowCartSuccess() throws Exception {
     // Arrange
+    User user = new User();
+    user.setId(1);
     Cart cart = new Cart();
     cart.setId(1);
     cart.setCartItem(List.of());
     cart.setFinalPrice(0.0);
+    cart.setUser(user);
 
     when(cartRepository.findCartByIdAndUser_Id(1, 1)).thenReturn(Optional.of(cart));
 
@@ -159,6 +163,7 @@ class CartServiceTest {
     cart.setCartItem(List.of());
     Coupon coupon = new Coupon();
     coupon.setId("coupon1");
+    coupon.setCart(new ArrayList<>());
     coupon.getCart().add(cart);
     cart.setCoupon(coupon);
 

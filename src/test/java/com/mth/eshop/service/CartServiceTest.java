@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.List;
 import java.util.Optional;
 
 class CartServiceTest {
@@ -56,9 +57,14 @@ class CartServiceTest {
     cart.setUser(temporaryUser);
     cart.setQuantity(0);
     cart.setFinalPrice(0.0);
+    cart.setCartItem(List.of());
 
     when(userRepository.save(any(User.class))).thenReturn(temporaryUser);
-    when(cartRepository.save(any(Cart.class))).thenReturn(cart);
+    when(cartRepository.save(any(Cart.class))).thenAnswer(invocation -> {
+      Cart c = invocation.getArgument(0);
+      c.setId(1);
+      return c;
+    });
 
     // Act
     CartDTO result = cartService.createCart();
@@ -75,6 +81,8 @@ class CartServiceTest {
     // Arrange
     Cart cart = new Cart();
     cart.setId(1);
+    cart.setCartItem(List.of());
+
     when(cartRepository.findCartByIdAndUser_Id(1, 1)).thenReturn(Optional.of(cart));
 
     // Act
@@ -99,8 +107,11 @@ class CartServiceTest {
   @Test
   void testAddToCartSuccess() throws Exception {
     // Arrange
+    User user = new User();
+    user.setId(1);
     Cart cart = new Cart();
     cart.setId(1);
+    cart.setUser(user);
     Item item = new Item();
     item.setId("item1");
     item.setName("Item 1");
@@ -144,6 +155,7 @@ class CartServiceTest {
     // Arrange
     Cart cart = new Cart();
     cart.setId(1);
+    cart.setCartItem(List.of());
     Coupon coupon = new Coupon();
     coupon.setId("coupon1");
     cart.setCoupon(coupon);

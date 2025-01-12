@@ -82,6 +82,7 @@ class CartServiceTest {
     Cart cart = new Cart();
     cart.setId(1);
     cart.setCartItem(List.of());
+    cart.setFinalPrice(0.0);
 
     when(cartRepository.findCartByIdAndUser_Id(1, 1)).thenReturn(Optional.of(cart));
 
@@ -158,6 +159,7 @@ class CartServiceTest {
     cart.setCartItem(List.of());
     Coupon coupon = new Coupon();
     coupon.setId("coupon1");
+    coupon.getCart().add(cart);
     cart.setCoupon(coupon);
 
     when(cartRepository.findCartByIdAndUser_Id(1, 1)).thenReturn(Optional.of(cart));

@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 public class CustomUserDetailsService implements UserDetailsService {
 
-  UserRepository userRepository;
+  private final UserRepository userRepository;
 
   public CustomUserDetailsService(UserRepository userRepository) {
     this.userRepository = userRepository;

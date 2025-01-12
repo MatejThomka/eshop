@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ "main", "dev" ]
+
+jobs:
+    build-test:
+        name: Test
+        runs-on: ubuntu-latest
+        environment: dev
+
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+
+        - name: Create network
+          run: docker network create eshop-network
+
+        - name: Prepare MySQL service
+          run: |
+            docker run -d --name mysql --network eshop-network \
+            -e MYSQL_ROOT_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -e MYSQL_DATABASE=${{ secrets.DB_NAME }} \
+            -p 3306:3306 mysql:8.0
+
+        - name: Build test image
+          run: |
+            docker build --target=dev -t eshop-test .
+
+        - name: Run tests
+          run: |
+            docker run --name eshop-test --network eshop-network \
+            -e DATABASE_URL=${{ secrets.DB_URL }}/${{ secrets.DB_NAME }} \
+            -e DATABASE_USERNAME=${{ secrets.DB_USERNAME }} \
+            -e DATABASE_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -e CART_URL=${{ secrets.CART_URL }} \
+            -e COUPON_URL=${{ secrets.COUPON_URL }} \
+            -e SPRING_PROFILES_ACTIVE=${{ vars.PROFILE }} \
+            eshop-test mvn test
+            
+        - name: Cleanup
+          if: always()
+          run: |
+            docker stop mysql eshop-test || true
+            docker rm mysql eshop-test || true
+            docker network rm eshop-network || true
+            docker rmi eshop-test || true
+
+    format-check:
+        name: Format check
+        runs-on: ubuntu-latest
+        environment: dev
+
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+
+        - name: Check formatting
+          run: |
+            docker run --rm \
+            -v ${{ github.workspace }}/src:/app/src \
+            -v ${{ github.workspace }}/pom.xml:/app/pom.xml \
+            -w /app \
+            maven:3.9-eclipse-temurin \
+            mvn spotless:check
+

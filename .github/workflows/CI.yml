@@ -46,7 +46,7 @@ jobs:
         - name: Run tests
           run: |
             docker run --name eshop-test --network eshop-network \
-            -e DATABASE_URL=${{ secrets.DB_URL }}${{ secrets.DB_NAME }} \
+            -e DATABASE_URL=${{ secrets.DB_URL }}/${{ secrets.DB_NAME }} \
             -e DATABASE_USERNAME=${{ secrets.DB_USERNAME }} \
             -e DATABASE_PASSWORD=${{ secrets.DB_PASSWORD }} \
             -e CART_URL=${{ secrets.CART_URL }} \

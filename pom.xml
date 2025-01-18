@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.mth</groupId>
-    <artifactId>Eshop</artifactId>
+    <artifactId>eshop</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>Eshop</name>
     <description>Eshop</description>
@@ -107,16 +107,10 @@
                 <configuration>
                     <java>
                         <googleJavaFormat>
+                            <style>GOOGLE</style>
                             <version>1.25.2</version>
                         </googleJavaFormat>
                     </java>
-                    <formats>
-                        <format>
-                            <includes>
-                                <include>**/*.java</include>
-                            </includes>
-                        </format>
-                    </formats>
                 </configuration>
                 <executions>
                     <execution>

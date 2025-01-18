@@ -2,7 +2,6 @@ package com.mth.eshop.model.mapper;
 
 import com.mth.eshop.model.DTO.*;
 import com.mth.eshop.model.User;
-import java.util.List;
 
 public class UserMapper {
   public static UserDTO toCustomerDTO(User user) {

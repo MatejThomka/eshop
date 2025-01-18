@@ -2,7 +2,6 @@ package com.mth.eshop.model;
 
 import jakarta.persistence.*;
 import java.util.List;
-
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

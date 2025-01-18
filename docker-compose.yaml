@@ -15,6 +15,9 @@ services:
       COUPON_BASE_URL: ${COUPON_URL}
     depends_on:
       - db
+    volumes:
+      - ./target:/app/target
+      - maven_cache:/root/.m2
     develop:
       watch:
         - action: sync+restart
@@ -35,3 +38,4 @@ services:
 
 volumes:
   db_data:
+  maven_cache:

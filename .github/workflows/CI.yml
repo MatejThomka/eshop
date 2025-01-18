@@ -5,6 +5,24 @@ on:
     branches: [ "main", "dev" ]
 
 jobs:
+    lint:
+      name: Linting
+      runs-on: ubuntu-latest
+      environment: dev
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+
+        - name: Check formatting
+          run: |
+            docker run --rm \
+            -v ${{ github.workspace }}/src:/app/src \
+            -v ${{ github.workspace }}/pom.xml:/app/pom.xml \
+            -w /app \
+            maven:3.9-eclipse-temurin \
+            mvn spotless:check
+
     build-test:
         name: Test
         runs-on: ubuntu-latest
@@ -46,22 +64,3 @@ jobs:
             docker rm mysql eshop-test || true
             docker network rm eshop-network || true
             docker rmi eshop-test || true
-
-    format-check:
-        name: Format check
-        runs-on: ubuntu-latest
-        environment: dev
-
-        steps:
-        - name: Checkout code
-          uses: actions/checkout@v2
-
-        - name: Check formatting
-          run: |
-            docker run --rm \
-            -v ${{ github.workspace }}/src:/app/src \
-            -v ${{ github.workspace }}/pom.xml:/app/pom.xml \
-            -w /app \
-            maven:3.9-eclipse-temurin \
-            mvn spotless:check
-

@@ -13,12 +13,14 @@ cat <<EOF > .git/hooks/pre-commit
 
 docker run --rm --name spotless-apply \
     -w //app \
-    -v $PWD/src:/app/src \
-    -v $PWD/pom.xml:/app/pom.xml \
+    -v "$PWD/src:/app/src" \
+    -v "$PWD/pom.xml:/app/pom.xml" \
     -v maven_cache:/root/.m2 \
     maven:3.9-eclipse-temurin-21-jammy \
     mvn spotless:apply
 
 EOF
+
+chmod +x .git/hooks/pre-commit
 
 echo "Setup of pre-commit hook successful"

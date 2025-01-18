@@ -9,34 +9,27 @@ import com.mth.eshop.exception.ItemException;
 import com.mth.eshop.model.*;
 import com.mth.eshop.model.DTO.CartDTO;
 import com.mth.eshop.repository.*;
+import java.util.ArrayList;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.ArrayList;
-import java.util.Optional;
-
 class CartServiceTest {
 
-  @Mock
-  private CartRepository cartRepository;
+  @Mock private CartRepository cartRepository;
 
-  @Mock
-  private ItemRepository itemRepository;
+  @Mock private ItemRepository itemRepository;
 
-  @Mock
-  private CartItemRepository cartItemRepository;
+  @Mock private CartItemRepository cartItemRepository;
 
-  @Mock
-  private UserRepository userRepository;
+  @Mock private UserRepository userRepository;
 
-  @Mock
-  private CouponRepository couponRepository;
+  @Mock private CouponRepository couponRepository;
 
-  @InjectMocks
-  private CartService cartService;
+  @InjectMocks private CartService cartService;
 
   private User user;
   private Cart cart;
@@ -74,11 +67,13 @@ class CartServiceTest {
   void testCreateCart() {
     // Arrange
     when(userRepository.save(any(User.class))).thenReturn(user);
-    when(cartRepository.save(any(Cart.class))).thenAnswer(invocation -> {
-      Cart c = invocation.getArgument(0);
-      c.setId(1);
-      return c;
-    });
+    when(cartRepository.save(any(Cart.class)))
+        .thenAnswer(
+            invocation -> {
+              Cart c = invocation.getArgument(0);
+              c.setId(1);
+              return c;
+            });
 
     // Act
     CartDTO result = cartService.createCart();
